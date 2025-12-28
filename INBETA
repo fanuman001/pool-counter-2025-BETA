@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎱 ELITE PRO v5.5 - LINKED ADMIN</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --blue: #0084ff; --red: #ff3333; --green: #00ff88; --gold: #ffd700; --bg: #050505; --card: #12141a; --border: #2d333b; --text: #f0f0f0; }
+        body { font-family: "PingFang TC", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
+        .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 1200px; margin: 0 auto; }
+        @media (max-width: 800px) { .main-layout { grid-template-columns: 1fr; } }
+        .card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .section-header { font-size: 0.9rem; color: #8b949e; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        
+        /* 雙向聯動設定區 */
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #000; padding: 12px; border-radius: 8px; }
+        .config-item { text-align: center; }
+        .config-item label { font-size: 0.65rem; color: #666; display: block; }
+        .config-item input { width: 80%; background: none; border: none; border-bottom: 1px solid #333; color: var(--gold); text-align: center; font-size: 1rem; font-weight: bold; outline: none; }
+        .config-item .sub-val { font-size: 0.6rem; color: #444; margin-top: 4px; }
+
+        .team-box { border-left: 4px solid var(--t-color); background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .p-btn { padding: 10px 5px; background: #1c1f26; border: 2px solid #2d333b; border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.8rem; font-weight: bold; color: #555; }
+        .p-btn.active-p { border-color: #fff; color: #fff; }
+        .win-btn { width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; color: white; }
+        .egg-group { display: flex; align-items: center; gap: 5px; margin-top: 8px; }
+        .egg-dot { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; cursor: pointer; }
+        .egg-dot.active { background: var(--gold); color: #000; border-color: #fff; }
+        
+        .list-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1a1d23; font-size: 0.9rem; }
+        .btn-main { width: 100%; padding: 15px; background: linear-gradient(135deg, #238636, #2ea043); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 999; }
+        .modal-content { background: var(--card); padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h3 style="text-align:center; color: var(--gold); margin: 10px 0;">🎱 ELITE PRO v5.5 <small style="font-size:0.5rem; color:#444;">LINKED</small></h3>
+
+    <div class="main-layout">
+        <div class="column">
+            <div class="card">
+                <div class="section-header">👥 出戰成員 <button onclick="luckyDrawTeams()" style="font-size:0.7rem; background:var(--blue); color:white; border:none; padding:2px 8px; border-radius:4px;">隨機分隊</button></div>
+                <div id="p-btns" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:8px;"></div>
+            </div>
+
+            <div class="card">
+                <div class="section-header">⚙️ 損益設定 (雙向聯動)</div>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label>全隊底線</label>
+                        <input type="number" id="team-base" value="150" oninput="syncVal('team','base')">
+                        <div class="sub-val">個人: <span id="indiv-base-label">75</span></div>
+                    </div>
+                    <div class="config-item">
+                        <label>全隊普球</label>
+                        <input type="number" id="team-ball" value="50" oninput="syncVal('team','ball')">
+                        <div class="sub-val">個人: <span id="indiv-ball-label">25</span></div>
+                    </div>
+                    <div class="config-item">
+                        <label>個人彩蛋</label>
+                        <input type="number" id="indiv-egg" value="25" oninput="syncVal('indiv','egg')">
+                        <div class="sub-val">全隊: <span id="team-egg-label">50</span></div>
+                    </div>
+                </div>
+                <div id="teams-list" style="margin-top:15px;"></div>
+                <button class="btn-main" onclick="calculate()">🚀 開始結算</button>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="card">
+                <div class="section-header">💎 錢包 <button onclick="toggleWalletHide()" style="font-size:0.7rem; background:none; border:none; color:var(--blue);">隱藏</button></div>
+                <div id="board"></div>
+            </div>
+            <div class="card">
+                <div class="section-header">📜 紀錄</div>
+                <div id="log-list" style="max-height:200px; overflow-y:auto; font-size:0.7rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal"><div class="modal-content" id="modal-content"></div></div>
+
+<script>
+    const SUPABASE_URL = 'https://nzuxyiefpenwuqudajdw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
+    const _db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const ADMIN_PW = "8888";
+
+    let players = [], history = [], walletHidden = false;
+    let lastSnap = "", sameCount = 0;
+    let teams = [
+        { id: 't1', name: '藍隊', color: '#0084ff', members: [], kills: 0, eggs: [], eggLimit: 2, win: false },
+        { id: 't2', name: '紅隊', color: '#ff3333', members: [], kills: 0, eggs: [], eggLimit: 2, win: false }
+    ];
+
+    // --- 雙向聯動邏輯 ---
+    function syncVal(type, field) {
+        if(type === 'team') {
+            const val = document.getElementById(`team-${field}`).value;
+            document.getElementById(`indiv-${field}-label`).innerText = Math.floor(val/2);
+        } else {
+            const val = document.getElementById(`indiv-egg`).value;
+            document.getElementById(`team-egg-label`).innerText = val * 2;
+        }
+    }
+
+    async function init() {
+        const { data: p } = await _db.from('players').select('*').order('id');
+        const { data: h } = await _db.from('history').select('*').order('created_at', { ascending: false });
+        players = p || []; history = h || [];
+        render();
+        _db.channel('any').on('postgres_changes', { event: '*', schema: 'public' }, fetchData).subscribe();
+    }
+
+    async function fetchData() {
+        const { data: p } = await _db.from('players').select('*').order('id');
+        const { data: h } = await _db.from('history').select('*').order('created_at', { ascending: false });
+        players = p || []; history = h || []; render();
+    }
+
+    function render() {
+        const active = players.filter(p => !p.name.startsWith("OFF_"));
+        document.getElementById('p-btns').innerHTML = active.map(p => {
+            const t = teams.find(team => team.members.includes(p.id));
+            return `<div class="p-btn ${t?'active-p':''}" style="${t?`border-color:${t.color};`:''}" onclick="handlePlayerClick(${p.id})">${p.name}</div>`;
+        }).join('');
+
+        document.getElementById('teams-list').innerHTML = teams.map((t, idx) => `
+            <div class="team-box" style="--t-color: ${t.color}">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.8rem;">
+                    <b>${t.name} (${t.members.length}人)</b>
+                    <span onclick="t.win=!t.win;render()" style="cursor:pointer; color:${t.win?t.color:'#444'}">${t.win?'🏆 獲勝':'標記'}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.8rem;">擊球: <b>${t.kills}</b></span>
+                    <div>
+                        <button onclick="adjKills('${t.id}',-1)" style="padding:2px 8px;">-</button>
+                        <button onclick="adjKills('${t.id}',1)" style="padding:2px 8px; background:${t.color}; color:white; border:none;">+</button>
+                    </div>
+                </div>
+                <div class="egg-group">
+                    <small style="font-size:0.6rem;">彩蛋:</small>
+                    ${Array.from({length: t.eggLimit}).map((_,i) => {
+                        const egg = t.eggs.find(e => e.idx === i);
+                        return `<div class="egg-dot ${egg?'active':''}" onclick="toggleEgg('${t.id}', ${i})">${egg ? egg.mul+'x' : i+1}</div>`;
+                    }).join('')}
+                    <button onclick="addEggSlot('${t.id}')" style="background:none; border:1px dashed #444; color:#444; border-radius:50%; width:20px; height:20px;">+</button>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('board').innerHTML = players.map(p => `
+            <div class="list-row" style="${p.name.startsWith('OFF_')?'opacity:0.2':''}">
+                <span>${p.name.replace("OFF_","")}</span>
+                <span class="wallet-val ${walletHidden?'blur':''}" style="color:${p.money>=0? 'var(--green)':'var(--red)'}" onclick="manualEdit(${p.id},'${p.name}',${p.money})">${p.money}</span>
+            </div>
+        `).join('');
+
+        document.getElementById('log-list').innerHTML = history.slice(0, 5).map(h => `
+            <div style="margin-bottom:8px; border-bottom:1px solid #222; padding-bottom:4px;">
+                <div style="color:#555;">${new Date(h.created_at).toLocaleTimeString()} <span onclick="deleteAndRefund(${h.id})" style="color:var(--red); cursor:pointer;">[刪單]</span></div>
+                <div>${h.description}</div>
+            </div>
+        `).join('');
+    }
+
+    async function calculate() {
+        const winT = teams.find(t => t.win);
+        const loseT = teams.find(t => !t.win && t.members.length > 0);
+        if(!winT || !loseT) return alert("請標記獲勝隊伍");
+
+        // 取得聯動後的個人價
+        const pBase = parseInt(document.getElementById('indiv-base-label').innerText);
+        const pBall = parseInt(document.getElementById('indiv-ball-label').innerText);
+        const pEgg = parseInt(document.getElementById('indiv-egg').value);
+
+        function getEggProfit(t) {
+            const cnt = t.eggs.length;
+            if(cnt === 0) return 0;
+            if(cnt === 1) return pEgg * t.members.length;   // 一人25 -> 全隊50
+            if(cnt === 2) return (pEgg * 3) * t.members.length; // 一人75 -> 全隊150
+            const lastMul = t.eggs[cnt-1].mul;
+            return (pEgg * lastMul) * t.members.length;
+        }
+
+        // 總和計算 (人數自適應)
+        let total = (pBase * winT.members.length);
+        total += (winT.kills * pBall * winT.members.length);
+        total += getEggProfit(winT);
+        total -= (loseT.kills * pBall * winT.members.length);
+        total -= getEggProfit(loseT);
+
+        const winPer = Math.floor(total / winT.members.length);
+        const losePer = -Math.floor(total / loseT.members.length);
+
+        let res = [];
+        winT.members.forEach(id => res.push({ id, name: players.find(x=>x.id===id).name, change: winPer }));
+        loseT.members.forEach(id => res.push({ id, name: players.find(x=>x.id===id).name, change: losePer }));
+
+        // 連續提醒
+        const snap = teams.map(t=>t.members.sort().join(",")).join("|");
+        if(snap === lastSnap) sameCount++; else { sameCount = 1; lastSnap = snap; }
+
+        showModal(res);
+    }
+
+    function showModal(res) {
+        document.getElementById('modal-content').innerHTML = `
+            <h4>結算核對</h4>
+            <div style="text-align:left; background:#000; padding:10px; border-radius:8px; margin-bottom:15px;">
+                ${res.map(r => `<div>${r.name}: <b style="color:${r.change>0?'var(--green)':'var(--red)'}">${r.change>0?'+':''}${r.change}</b></div>`).join('')}
+            </div>
+            <button class="btn-main" onclick="confirmSubmit('${JSON.stringify(res).replace(/'/g, "\\'")}')">確認同步</button>
+            <button onclick="closeModal()" style="background:none; border:none; color:#555; margin-top:10px;">取消</button>
+        `;
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    async function confirmSubmit(resStr) {
+        const res = JSON.parse(resStr);
+        for(let r of res) {
+            const p = players.find(x => x.id === r.id);
+            await _db.from('players').update({ money: p.money + r.change }).eq('id', p.id);
+        }
+        const desc = `⚔️ 對局 | ` + res.map(r=>`${r.name}: ${r.change>0?'+':''}${r.change}`).join(', ');
+        await _db.from('history').insert([{ description: desc }]);
+        if(sameCount >= 3) alert("⚠️ 警告：這組人馬已連打 3 局，建議更換！");
+        teams.forEach(t => { t.kills = 0; t.eggs = []; t.win = false; });
+        closeModal(); fetchData();
+    }
+
+    // --- 輔助功能 ---
+    function handlePlayerClick(pid) {
+        let tidx = teams.findIndex(t => t.members.includes(pid));
+        if (tidx !== -1) {
+            teams[tidx].members = teams[tidx].members.filter(id => id !== pid);
+            if (tidx + 1 < teams.length) teams[tidx + 1].members.push(pid);
+        } else { teams[0].members.push(pid); }
+        render();
+    }
+    function toggleEgg(tid, idx) {
+        const t = teams.find(x => x.id === tid);
+        const existIdx = t.eggs.findIndex(e => e.idx === idx);
+        if (existIdx > -1) { t.eggs.splice(existIdx, 1); } 
+        else {
+            let mul = 1;
+            if (idx === 1) mul = 3; 
+            else if (idx >= 2) mul = parseFloat(prompt("倍數：", "2")) || 1;
+            t.eggs.push({ idx, mul });
+        }
+        render();
+    }
+    async function deleteAndRefund(hid) {
+        if(prompt("密碼：") !== ADMIN_PW) return;
+        const rec = history.find(h => h.id === hid);
+        if(rec && rec.description.includes("⚔️ 對局")) {
+            const parts = rec.description.split("|")[1].split(",");
+            for(let pStr of parts) {
+                const name = pStr.split(":")[0].trim();
+                const change = parseInt(pStr.split(":")[1].trim());
+                const p = players.find(x => x.name.replace("OFF_","") === name);
+                if(p) await _db.from('players').update({ money: p.money - change }).eq('id', p.id);
+            }
+        }
+        await _db.from('history').delete().eq('id', hid);
+        fetchData();
+    }
+    function adjKills(tid, v) { const t=teams.find(x=>x.id===tid); t.kills=Math.max(0,t.kills+v); render(); }
+    function addEggSlot(tid) { teams.find(x=>x.id===tid).eggLimit++; render(); }
+    function closeModal() { document.getElementById('modal').style.display='none'; }
+    function toggleWalletHide() { walletHidden = !walletHidden; render(); }
+    async function luckyDrawTeams() {
+        const active = players.filter(p => !p.name.startsWith("OFF_"));
+        teams.forEach(t => t.members = []);
+        const shuffle = [...active].sort(() => Math.random() - 0.5);
+        shuffle.forEach((p, i) => teams[i % teams.length].members.push(p.id));
+        render();
+    }
+    init();
+</script>
+</body>
+</html>
