@@ -2,138 +2,142 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎱 ELITE PRO - 互動教學導航</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ELITE v51.0 - 互動教學導覽</title>
     <style>
-        :root { 
-            --blue: #0084ff; --red: #ff3333; --green: #00ff88; --gold: #ffd700;
-            --bg: #050505; --card: #12141a; --panel: #1c1f26; --text: #f0f0f0; --border: #2d333b;
+        /* 保留原本的所有 CSS 樣式 */
+        :root { --blue: #00d2ff; --red: #ff4757; --green: #2ed573; --gold: #ffa502; --bg: #0d1117; --card: #1c222b; --border: #30363d; --gray: #8b949e; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 12px; font-size: 16px; }
+        .nav-bar { display: flex; gap: 8px; margin-bottom: 15px; }
+        .nav-link { flex: 1; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--blue); text-align: center; text-decoration: none; font-size: 14px; font-weight: bold; }
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .config-box { background: var(--card); padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .big-in { width: 65px; background: #000; border: 1px solid #444; color: var(--gold); text-align: center; border-radius: 8px; font-size: 18px; padding: 5px; font-weight: bold; }
+        .p-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 10px; }
+        .p-btn { padding: 18px 5px; background: #21262d; border: 2.5px solid var(--border); border-radius: 15px; text-align: center; font-weight: bold; font-size: 18px; transition: 0.2s; position: relative; }
+        .t-1 { border-color: var(--blue) !important; color: var(--blue); }
+        .t-2 { border-color: var(--red) !important; color: var(--red); }
+        .egg-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .egg-circle { width: 48px; height: 48px; border-radius: 50%; border: 2.5px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #ccc; }
+        .egg-circle.active { background: var(--gold); color: #000; border: 3px solid #fff; transform: scale(1.15); box-shadow: 0 0 15px var(--gold); }
+        .card { background: var(--card); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 15px; text-align: center; border-radius: 15px; background: #161b22; color: #8b949e; font-weight: bold; font-size: 18px; }
+        .tab.active { background: var(--blue); color: #000; }
+        .win-btn { width: 100%; padding: 18px; border-radius: 15px; margin-top: 12px; border: 1px solid #333; background: #21262d; color: #fff; font-size: 18px; font-weight: bold; }
+        .win-btn.active { background: var(--green); color: #000; }
+
+        /* 教學版專用樣式 */
+        #tutorial-overlay {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 210, 255, 0.95); color: #000; padding: 15px 25px;
+            border-radius: 50px; font-weight: 900; z-index: 10000; display: none;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.5); text-align: center;
         }
-        body { font-family: "PingFang TC", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; overflow-x: hidden; }
-        .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
-        @media (max-width: 800px) { .main-layout { grid-template-columns: 1fr; } }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .section-header { font-size: 1rem; color: #8b949e; font-weight: 900; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .config-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; background: #000; padding: 15px; border-radius: 10px; }
-        .config-item label { display: block; font-size: 0.7rem; color: #555; text-align: center; }
-        .config-item input { width: 100%; background: none; border: none; color: var(--gold); text-align: center; font-size: 1.2rem; font-weight: bold; outline: none; }
-        .team-box { border-left: 5px solid var(--t-color); background: rgba(255,255,255,0.02); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-        .win-btn { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: bold; color: white; }
-        .egg-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
-        .egg-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; cursor: pointer; }
-        .egg-dot.active { border-color: #fff; background: var(--gold); color: #000; box-shadow: 0 0 10px var(--gold); }
-        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
-        .p-btn { padding: 12px 5px; background: var(--panel); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; font-size: 0.9rem; font-weight: bold; color: #fff; border-color: var(--blue); }
-        .list-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #1a1d23; }
-        .btn-main { width: 100%; padding: 18px; background: linear-gradient(135deg, #238636, #2ea043); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; font-size: 1.1rem; }
-        
-        /* 教學提示框樣式 */
-        #tutorial-toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: var(--blue); color: white; padding: 15px 25px; border-radius: 50px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 10000; font-weight: bold;
-            display: none; text-align: center; border: 2px solid white;
-        }
-        .principle-box {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px;
-        }
-        .p-guide-btn { padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; }
+        .guide-panel { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .guide-btn { padding: 15px; border-radius: 15px; border: 2px solid var(--gold); background: none; color: var(--gold); font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align:center; color: var(--gold); letter-spacing: 8px; margin: 20px 0;">🎱 教學模式 <span style="font-size:0.8rem; color: #555;">v5.2 GUIDE</span></h2>
+<div class="tabs">
+    <div class="tab active" onclick="showTip('⚔️ 戰場頁：進行分隊、設定參數與即時預覽分數。')">⚔️ 戰場</div>
+    <div class="tab" onclick="showTip('💎 錢包頁：管理成員清單、增減姓名或進行總金額手動調整。')">💎 錢包</div>
+    <div class="tab" onclick="showTip('📊 數據頁：查看今日未結戰況、歷史紀錄或進行單筆刪單。')">📊 數據</div>
+</div>
 
-    <div class="main-layout">
-        <div class="column">
-            <div class="card" onclick="showTip('點擊球員可以將他循環分配到不同隊伍中。')">
-                <div class="section-header">👥 出戰成員 (點擊測試)</div>
-                <div class="player-grid">
-                    <div class="p-btn">玩家 A</div>
-                    <div class="p-btn">玩家 B</div>
-                    <div class="p-btn">玩家 C</div>
-                    <div class="p-btn">玩家 D</div>
-                </div>
-            </div>
+<div id="tab-game">
+    <div class="config-grid">
+        <div class="config-box" onclick="showTip('底金：這是獲勝隊伍從每一支輸家隊伍領取的「每人」基本分數。')"><span>底金</span><input class="big-in" type="number" value="75" readonly></div>
+        <div class="config-box" onclick="showTip('球價：定向擊球的單價，用於計算隊伍間的特定「人頭分」。')"><span>球價</span><input class="big-in" type="number" value="25" readonly></div>
+        <div class="config-box" onclick="showTip('媽價：彩蛋的基礎單價。每多一顆媽球，價值會按倍數增加。')"><span>媽價</span><input class="big-in" type="number" value="50" readonly></div>
+        <div class="config-box" onclick="showTip('2媽倍：專門設定「2顆媽球」時的倍率。預設 3 倍代表 2 媽價值等於 3 顆 1 媽。')"><span>2媽倍</span><input class="big-in" type="number" value="3" readonly></div>
+    </div>
 
-            <div class="card">
-                <div class="section-header">
-                    <span>⚙️ 局設定</span>
-                    <button onclick="showTip('🎰 隨機分隊：系統會自動打散上線成員，平均分派到各隊。')" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">🎰 隨機分隊</button>
-                </div>
-                <div class="config-grid">
-                    <div class="config-item" onclick="showTip('贏底：獲勝隊伍從每支輸家隊伍收取的基礎總額。')"><label>贏底</label><input type="number" value="150" readonly></div>
-                    <div class="config-item" onclick="showTip('普通球：定向球的單價，攻擊成功即轉移該金額。')"><label>普通球</label><input type="number" value="50" readonly></div>
-                    <div class="config-item" onclick="showTip('彩蛋單價：每一顆彩蛋(媽球)的計算基數。')"><label>彩蛋單價</label><input type="number" value="50" readonly></div>
-                </div>
-
-                <div class="team-box" style="--t-color: var(--blue)" onclick="showTip('隊伍面板：包含獲勝標記、擊球數(定向)與彩蛋設定。')">
-                    <div class="section-header">藍隊</div>
-                    <button class="win-btn" style="background:var(--blue)">🏆 獲勝 (收底金)</button>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span>擊球: <b style="color:var(--blue); font-size:1.5rem;">3</b></span>
-                        <small>點擊 +/- 調整定向球</small>
-                    </div>
-                    <div class="egg-group">
-                        <div class="egg-dot active">1x</div>
-                        <div class="egg-dot">2</div>
-                        <small>點擊圓點設定彩蛋(媽球)倍率</small>
-                    </div>
-                </div>
-
-                <button class="btn-main" onclick="showTip('🚀 結算：根據底金、球數、彩蛋綜合計算後，同步到所有人的錢包。')">🚀 結算對局 (點擊看說明)</button>
-            </div>
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button onclick="showTip('🎰 隨機分隊：一鍵將所有在線球員隨機打散，平均分配到目前隊伍。')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">🎰 隨機分隊</button>
         </div>
-
-        <div class="column">
-            <div class="card">
-                <div class="section-header">💎 錢包與勝率 (點擊數值可手動修改)</div>
-                <div class="list-row">
-                    <span>✅ 玩家 A <small style="color:var(--blue)">60% 勝率</small></span>
-                    <b class="wallet-val" style="color:var(--green)">+1250</b>
-                </div>
-                <div class="list-row" onclick="showTip('💤 點擊勾選框可以將球員設為下線，該球員將不參與分隊。')">
-                    <span>💤 玩家 B <small style="color:var(--blue)">40% 勝率</small></span>
-                    <b class="wallet-val" style="color:var(--red)">-450</b>
-                </div>
+        <div class="p-grid">
+            <div class="p-btn t-1" onclick="showTip('點擊球員：可以循環切換該隊員所屬的隊伍顏色。')">
+                <div style="position: absolute; top: -10px; right: -5px; padding: 2px 10px; border-radius: 8px; font-size: 14px; background: var(--green); color:#000;">+250</div>
+                模擬球員 A
             </div>
-
-            <div class="card">
-                <div class="section-header">🧠 計算原理詳解 (點擊按鈕)</div>
-                <div class="principle-box">
-                    <button class="p-guide-btn" style="background:var(--gold); color:black;" onclick="explain('base')">底金公式</button>
-                    <button class="p-guide-btn" style="background:var(--blue); color:white;" onclick="explain('egg')">彩蛋倍率</button>
-                    <button class="p-guide-btn" style="background:var(--red); color:white;" onclick="explain('kill')">擊球計算</button>
-                </div>
+            <div class="p-btn t-2" onclick="showTip('預覽分數：上方的小標籤會根據目前參數，即時顯示這一局如果現在送單，每人會得多少分。')">
+                <div style="position: absolute; top: -10px; right: -5px; padding: 2px 10px; border-radius: 8px; font-size: 14px; background: var(--red); color:#fff;">-250</div>
+                模擬球員 B
             </div>
         </div>
     </div>
+    
+    <div class="card" style="border-left:8px solid var(--blue);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <b style="font-size:20px;">隊伍 1 (模擬藍隊)</b>
+            <b style="color:var(--green); font-size:24px;">+250</b>
+        </div>
+        
+        <div style="display:flex; gap:10px; margin:10px 0;">
+            <div style="background:#000; padding:8px; border-radius:12px; border:1px solid #444; display:flex; align-items:center;" onclick="showTip('定向球：對特定隊伍的擊殺。攻擊方贏錢，被攻擊方輸錢。')">
+                <span style="font-size:12px; color:#888;">對隊2:</span>
+                <button style="color:#fff; border:none; background:none; font-size:20px; padding:0 8px;">-</button>
+                <b style="color:var(--gold); font-size:18px;">2</b>
+                <button style="color:#fff; border:none; background:none; font-size:20px; padding:0 8px;">+</button>
+            </div>
+        </div>
 
-    <div id="tutorial-toast">提示訊息</div>
+        <div class="egg-group" onclick="showTip('媽球設定：點擊設定本局該隊獲得幾顆媽球。1-5媽有不同的權重。')">
+            <div class="egg-circle active">1媽</div>
+            <div class="egg-circle">2媽</div>
+            <div class="egg-circle">3媽</div>
+            <div class="egg-circle">4媽</div>
+        </div>
+        
+        <button class="win-btn active" onclick="showTip('標記贏家：必須選定一支贏家隊伍，才能啟動底金計算流程。')">🏆 已標記為贏家</button>
+    </div>
 
-    <script>
-        function showTip(text) {
-            const toast = document.getElementById('tutorial-toast');
-            toast.innerText = text;
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    <button onclick="showTip('🚀 送單計分：點擊後會正式將預覽的分數寫入錢包資料庫，並清除目前戰場設定。')" style="width:100%; padding:25px; background:var(--green); color:#000; border:none; border-radius:20px; font-weight:900; font-size:24px; margin-bottom:20px;">🚀 送單計分 (點擊看說明)</button>
+    
+    <div class="guide-panel">
+        <button class="guide-btn" onclick="explain('math')">💡 核心計分公式</button>
+        <button class="guide-btn" onclick="explain('egg')">🥚 媽球倍率原理</button>
+        <button class="guide-btn" onclick="explain('base')">⚖️ 底金平攤邏輯</button>
+        <button class="guide-btn" onclick="explain('target')">🎯 定向球計算</button>
+    </div>
+</div>
+
+<div id="tutorial-overlay"></div>
+
+<script>
+    function showTip(msg) {
+        const overlay = document.getElementById('tutorial-overlay');
+        overlay.innerText = msg;
+        overlay.style.display = 'block';
+        setTimeout(() => { overlay.style.display = 'none'; }, 3000);
+    }
+
+    function explain(type) {
+        let content = "";
+        switch(type) {
+            case 'math':
+                content = "【核心公式】\n\n個人得分 = (底金變動 + 媽球變動 + 定向變動)\n\n※ 所有變動皆會自動乘以「全場最大隊伍人數」，確保多打少或少打多時的金額對等。";
+                break;
+            case 'egg':
+                content = "【媽球倍率原理】\n\n1媽 = 1倍\n2媽 = 設定倍率 (如 3倍)\n3媽 = 4倍\n4媽 = 6倍\n\n計算：(我隊媽球總值 - 敵隊媽球總值) x 媽價 x 最大人數。";
+                break;
+            case 'base':
+                content = "【底金平攤邏輯】\n\n底金是以「隊伍」為單位計算。\n贏家隊伍會從「每一支」輸家隊伍領取一份底金。\n\n例如：底金75，最大隊伍3人，有兩隊輸家。\n贏家總共贏：(75 * 3) * 2隊 = 450 分。";
+                break;
+            case 'target':
+                content = "【定向球計算】\n\n定向球是「點對點」的轉移。\n若 A 隊對 B 隊打 2 顆球：\nB 隊每人平分損失 (2 * 球價 * 最大人數)\nA 隊每人平分獲得該筆金額。";
+                break;
         }
+        alert(content);
+    }
 
-        function explain(type) {
-            let msg = "";
-            if(type === 'base') {
-                msg = "【底金計算原理】\n\n1. 系統會抓取當前所有隊伍中「人數最多」的一隊作為基準。\n2. 公式：底金金額 x 人數。\n3. 輸家隊伍每人平分這筆錢，交給贏家隊伍平分。\n\n※ 這確保了不管幾個人打幾個人，總金額永遠是平衡的。";
-            } else if(type === 'egg') {
-                msg = "【彩蛋(媽球)倍率】\n\n1. 第一顆彩蛋預設為 1x 單價。\n2. 第二顆彩蛋(2媽)預設為 3x 單價。\n3. 第三顆以後可以自定義倍率。\n\n計算方式：(我隊總倍率 - 他隊總倍率) x 彩蛋單價。";
-            } else if(type === 'kill') {
-                msg = "【擊球(定向)計算】\n\n擊球屬於隊伍間的直接轉移。\n\n計算方式：(A隊擊球數 - B隊擊球數) x 普通球單價。\n多隊情況下，會分別對每一支敵對隊伍進行計算並加總。";
-            }
-            alert(msg);
-        }
+    // 將頁面所有 Input 設為唯讀
+    document.querySelectorAll('input').forEach(input => input.readOnly = true);
+</script>
 
-        // 禁止頁面所有輸入框
-        document.querySelectorAll('input').forEach(i => i.setAttribute('readonly', true));
-    </script>
 </body>
 </html>
 
