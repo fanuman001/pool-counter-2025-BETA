@@ -1,116 +1,106 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>戰況即時計算</title>
-  <style>
-    body { font-family: sans-serif; background:#111; color:#eee; padding:20px }
-    h2 { margin-top:30px }
-    .team { border:1px solid #444; padding:10px; margin-bottom:20px }
-    .player { margin:5px 0 }
-    button { margin:2px }
-    .money { font-weight:bold; color:#0f0 }
-    .setting { background:#222; padding:10px; margin-bottom:20px }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELITE - 快捷導航中心</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card: #1c222b;
+            --border: #30363d;
+            --blue: #00d2ff;
+            --gold: #ffa502;
+            --text: #c9d1d9;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 { color: var(--blue); margin-bottom: 25px; }
+
+        /* 網格佈局 */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* 按鈕基本樣式 */
+        .nav-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 20px 10px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 懸停與點擊效果 */
+        .nav-item:hover {
+            border-color: var(--blue);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.2);
+        }
+
+        .nav-item:active {
+            transform: scale(0.95);
+        }
+
+        /* 圖示與文字樣式 */
+        .icon { font-size: 24px; }
+        .label { font-size: 16px; }
+
+        /* 不同的強調色 */
+        .btn-supabase { border-bottom: 4px solid #3ecf8e; }
+        .btn-google { border-bottom: 4px solid #4285f4; }
+        .btn-score { border-bottom: 4px solid var(--gold); }
+    </style>
 </head>
 <body>
 
-<h1>即時戰況計算</h1>
+    <h2>🌐 快捷入口中心</h2>
 
-<div class="setting">
-  <h2>系統設定（刷新不會消失）</h2>
-  贏底：<input type="number" id="winBase" />  
-  普通球單顆：<input type="number" id="normal1" />  
-  普通球兩顆：<input type="number" id="normal2" />  
-  彩蛋球：<input type="number" id="egg" />
-  <button onclick="saveSetting()">儲存設定</button>
-</div>
+    <div class="nav-grid">
+        
+        <a href="https://supabase.com" target="_blank" class="nav-item btn-supabase">
+            <span class="icon">📊</span>
+            <span class="label">Supabase 後台</span>
+        </a>
 
-<div class="team">
-  <h2>🔵 藍隊</h2>
-  <div id="bluePlayers"></div>
-</div>
+        <a href="YOUR_SCORE_URL_HERE" target="_blank" class="nav-item btn-score">
+            <span class="icon">⚔️</span>
+            <span class="label">計分系統</span>
+        </a>
 
-<div class="team">
-  <h2>🔴 紅隊</h2>
-  <div id="redPlayers"></div>
-</div>
+        <a href="https://www.google.com" target="_blank" class="nav-item btn-google">
+            <span class="icon">🔍</span>
+            <span class="label">Google 搜尋</span>
+        </a>
 
-<script>
-/* ====== 初始設定 ====== */
-const defaultSetting = {
-  winBase: 75,
-  normal1: 50,
-  normal2: 150,
-  egg: 50
-}
+        <a href="https://github.com" target="_blank" class="nav-item">
+            <span class="icon">💻</span>
+            <span class="label">GitHub</span>
+        </a>
 
-let setting = JSON.parse(localStorage.getItem('setting')) || defaultSetting
-
-document.getElementById('winBase').value = setting.winBase
-document.getElementById('normal1').value = setting.normal1
-document.getElementById('normal2').value = setting.normal2
-document.getElementById('egg').value = setting.egg
-
-function saveSetting(){
-  setting = {
-    winBase: +winBase.value,
-    normal1: +normal1.value,
-    normal2: +normal2.value,
-    egg: +egg.value
-  }
-  localStorage.setItem('setting', JSON.stringify(setting))
-  alert('設定已儲存')
-}
-
-/* ====== 假資料（你之後可接會員） ====== */
-const blueTeam = [
-  { name:'阿樂', normal:0, egg:0, money:0 },
-  { name:'阿重', normal:0, egg:0, money:0 }
-]
-
-const redTeam = [
-  { name:'阿興', normal:0, egg:0, money:0 },
-  { name:'阿財', normal:0, egg:0, money:0 }
-]
-
-/* ====== 計算邏輯 ====== */
-function calc(player){
-  if(player.normal === 0) player.money = 0
-  if(player.normal === 1) player.money = setting.normal1
-  if(player.normal >= 2) player.money = setting.normal2
-  player.money += player.egg * setting.egg
-}
-
-function render(){
-  bluePlayers.innerHTML = ''
-  redPlayers.innerHTML = ''
-
-  renderTeam(bluePlayers, blueTeam)
-  renderTeam(redPlayers, redTeam)
-}
-
-function renderTeam(dom, team){
-  team.forEach(p=>{
-    calc(p)
-    const div = document.createElement('div')
-    div.className = 'player'
-    div.innerHTML = `
-      ${p.name}｜
-      普通球:${p.normal}
-      <button onclick="p.normal++ ; render()">+1</button>
-      <button onclick="p.normal=Math.max(0,p.normal-1); render()">-1</button>
-      ｜彩蛋:${p.egg}
-      <button onclick="p.egg++ ; render()">+1</button>
-      <button onclick="p.egg=Math.max(0,p.egg-1); render()">-1</button>
-      ｜金額：<span class="money">${p.money}</span>
-    `
-    dom.appendChild(div)
-  })
-}
-
-render()
-</script>
+        </div>
 
 </body>
 </html>
