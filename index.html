@@ -3,54 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ELITE v51.9 - 完整教學演示版</title>
+    <title>ELITE v51.10 - 完整原理教學版</title>
     <style>
         :root { --blue: #00d2ff; --red: #ff4757; --green: #2ed573; --gold: #ffa502; --bg: #0d1117; --card: #1c222b; --border: #30363d; --gray: #8b949e; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 12px; }
-        
-        /* 繼承 v51.0 的專業 UI */
         .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .config-box { background: var(--card); padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .big-in { width: 65px; background: #000; border: 1px solid #444; color: var(--gold); text-align: center; border-radius: 8px; font-size: 18px; padding: 5px; font-weight: bold; }
-        
         .p-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 10px; }
-        .p-btn { padding: 18px 5px; background: #21262d; border: 2.5px solid var(--border); border-radius: 15px; text-align: center; font-weight: bold; font-size: 18px; position: relative; transition: 0.2s; }
-        
-        /* 隨機震動動畫 */
-        @keyframes shuffle { 0% { transform: scale(1); } 50% { transform: scale(1.05); background: var(--blue); } 100% { transform: scale(1); } }
-        .shuffling { animation: shuffle 0.1s infinite; }
-
+        .p-btn { padding: 18px 5px; background: #21262d; border: 2.5px solid var(--border); border-radius: 15px; text-align: center; font-weight: bold; font-size: 18px; position: relative; }
         .t-1 { border-color: var(--blue) !important; color: var(--blue); }
         .t-2 { border-color: var(--red) !important; color: var(--red); }
-        
         .card { background: var(--card); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid var(--border); }
         .score-badge { position: absolute; top: -10px; right: -5px; padding: 2px 10px; border-radius: 8px; font-size: 14px; font-weight: 900; }
         .win-tag { background: var(--green); color: #000; }
         .loss-tag { background: var(--red); color: #fff; }
-        
-        .egg-group { display: flex; gap: 8px; margin-top: 15px; }
-        .egg-circle { width: 45px; height: 45px; border-radius: 50%; border: 2px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #666; }
-        .egg-circle.active { background: var(--gold); color: #000; border: 2px solid #fff; transform: scale(1.1); box-shadow: 0 0 10px var(--gold); }
-
-        .win-btn { width: 100%; padding: 15px; border-radius: 12px; margin-top: 10px; border: 1px solid #444; background: #21262d; color: #fff; font-weight: bold; }
+        .egg-group { display: flex; gap: 8px; margin-top: 10px; margin-bottom: 10px; }
+        .egg-circle { width: 42px; height: 42px; border-radius: 50%; border: 2px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666; cursor: pointer; }
+        .egg-circle.active { background: var(--gold); color: #000; border: 2px solid #fff; }
+        .win-btn { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #444; background: #21262d; color: #fff; font-weight: bold; }
         .win-btn.active { background: var(--green); color: #000; border: none; }
-        
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 15px; text-align: center; border-radius: 15px; background: #161b22; color: #8b949e; font-weight: bold; }
-        .tab.active { background: var(--blue); color: #000; }
-        .hidden { display: none; }
-        .tutorial-msg { background: var(--gold); color: #000; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; font-size: 14px; }
+        .logic-card { background: #161b22; border: 1px dashed var(--gray); padding: 15px; border-radius: 15px; margin-top: 20px; font-size: 13px; color: var(--gray); line-height: 1.6; }
     </style>
 </head>
 <body>
 
-<div class="tutorial-msg" id="tut-guide">
-    💡 <b>引導：</b>請點擊【🎰 隨機分隊】開始模擬對局。
-</div>
-
-<div class="tabs">
-    <div class="tab active" onclick="showTab('game')">⚔️ 模擬戰場</div>
-    <div class="tab" onclick="showTab('history')">📊 模擬單據</div>
+<div class="card" style="background:var(--blue); color:#000; font-weight:bold; padding:10px; text-align:center; border-radius:10px;">
+    🏆 教學版：實時邏輯與成員顯示
 </div>
 
 <div id="tab-game">
@@ -58,74 +37,78 @@
         <div class="config-box"><span>底金</span><input id="v-base" class="big-in" type="number" value="75" oninput="render()"></div>
         <div class="config-box"><span>球價</span><input id="v-ball" class="big-in" type="number" value="25" oninput="render()"></div>
         <div class="config-box"><span>媽價</span><input id="v-egg" class="big-in" type="number" value="50" oninput="render()"></div>
-        <div class="config-box"><span>2媽倍</span><input id="v-m2" class="big-in" type="number" value="3" oninput="render()"></div>
     </div>
 
     <div class="card">
-        <button onclick="runShuffle()" style="width:100%; padding:15px; background:var(--gold); border:none; border-radius:12px; font-weight:bold; font-size:18px; margin-bottom:15px;">🎰 隨機分隊 (模擬動畫)</button>
+        <button onclick="runShuffle()" style="width:100%; padding:12px; background:var(--gold); border:none; border-radius:10px; font-weight:bold; margin-bottom:15px;">🎰 隨機分隊</button>
         <div id="p-grid" class="p-grid"></div>
     </div>
     
     <div id="team-list"></div>
-    
-    <button onclick="mockSubmit()" style="width:100%; padding:20px; background:var(--green); border:none; border-radius:15px; font-weight:900; font-size:20px; margin-top:10px;">🚀 模擬送單 (不扣真錢)</button>
-</div>
 
-<div id="tab-history" class="hidden">
-    <div id="order-history"></div>
+    <div class="logic-card">
+        <b style="color:var(--gold); display:block; margin-bottom:5px;">📊 系統計算原理：</b>
+        1. <b>底金：</b>贏家隊伍向輸家隊伍收取 [底金 × 最大隊伍人數]。<br>
+        2. <b>普通球：</b>[球數 × 球價 × 最大隊伍人數]，由對方全體平攤支付。<br>
+        3. <b>媽球：</b>[媽價 × 倍率 × 最大隊伍人數]，由對方全體平攤支付。<br>
+        <small>* 所有金額會依據隊伍人數進行「平均拆解」，確保總帳平衝為 0。</small>
+    </div>
 </div>
 
 <script>
-// --- 模擬數據與 v51.0 核心邏輯 ---
 let players = [
-    {id: 1, name: "測試阿明", money: 150}, {id: 2, name: "測試小華", money: -75},
-    {id: 3, name: "測試大強", money: 0}, {id: 4, name: "測試老王", money: 300},
-    {id: 5, name: "測試杰哥", money: -100}, {id: 6, name: "測試凱文", money: 0}
-];
-let matches = [
-    {id: 991, description: "局#Demo (🏆隊1) 阿明(75) 小華(-75)"}
+    {id: 1, name: "阿明"}, {id: 2, name: "小華"},
+    {id: 3, name: "大強"}, {id: 4, name: "老王"},
+    {id: 5, name: "杰哥"}, {id: 6, name: "凱文"}
 ];
 let teams = [{id:1, e:0, targetK:{}}, {id:2, e:0, targetK:{}}];
-let playerTeams = {}; // 初始未分隊
-let winId = 0;
+let playerTeams = {1:1, 2:1, 3:2, 4:2}; // 預設 2vs2
+let winId = 1;
 
 function calculate() {
     const base = Number(document.getElementById('v-base').value);
     const ball = Number(document.getElementById('v-ball').value);
     const eggU = Number(document.getElementById('v-egg').value);
-    const m2Mult = Number(document.getElementById('v-m2').value);
-    const mults = { 0:0, 1:1, 2:m2Mult, 3:4, 4:6 };
+    const mults = { 0:0, 1:1, 2:3, 3:4, 4:6 };
     
-    let sc = {}; 
-    players.forEach(p => sc[p.id] = 0);
-    
+    let sc = {}; players.forEach(p => sc[p.id] = 0);
     const on = players.filter(p => playerTeams[p.id] > 0);
     if (!on.length) return { sc };
 
     let teamMemsMap = { 1: on.filter(p => playerTeams[p.id] === 1), 2: on.filter(p => playerTeams[p.id] === 2) };
     const maxN = Math.max(teamMemsMap[1].length, teamMemsMap[2].length);
 
-    // 1. 底金計算
+    // 底金
     if (winId && maxN > 0) {
         const teamBase = base * maxN;
         const winners = teamMemsMap[winId];
         const losers = teamMemsMap[winId === 1 ? 2 : 1];
-        
         if (winners.length && losers.length) {
             losers.forEach(p => sc[p.id] -= (teamBase / losers.length));
             winners.forEach(p => sc[p.id] += (teamBase / winners.length));
         }
     }
 
-    // 2. 媽球與定向 (簡化演示版邏輯)
+    // 普通球與媽球
     teams.forEach(t => {
         const teamMems = teamMemsMap[t.id];
-        if (!teamMems || !teamMems.length) return;
+        const otherId = t.id === 1 ? 2 : 1;
+        const otherMems = teamMemsMap[otherId];
+        if (!teamMems.length || !otherMems.length) return;
+
+        // 媽球邏輯
         if (t.e > 0) {
             const eggTotal = (eggU * mults[t.e]) * maxN;
-            const otherTeamId = t.id === 1 ? 2 : 1;
-            teamMemsMap[otherTeamId].forEach(p => sc[p.id] -= (eggTotal / teamMemsMap[otherTeamId].length));
+            otherMems.forEach(p => sc[p.id] -= (eggTotal / otherMems.length));
             teamMems.forEach(p => sc[p.id] += (eggTotal / teamMems.length));
+        }
+
+        // 普通球 (定向球) 邏輯
+        const kCount = t.targetK[otherId] || 0;
+        if (kCount > 0) {
+            const ballTotal = (kCount * ball) * maxN;
+            otherMems.forEach(p => sc[p.id] -= (ballTotal / otherMems.length));
+            teamMems.forEach(p => sc[p.id] += (ballTotal / teamMems.length));
         }
     });
     return { sc };
@@ -134,82 +117,49 @@ function calculate() {
 function render() {
     const { sc } = calculate();
     
-    // 渲染球員 Grid
+    // 球員按鈕
     document.getElementById('p-grid').innerHTML = players.map(p => {
         const tid = playerTeams[p.id] || 0;
         const s = Math.round(sc[p.id] || 0);
-        return `<div id="p-box-${p.id}" class="p-btn t-${tid}" onclick="togglePT(${p.id})">
+        return `<div class="p-btn t-${tid}" onclick="togglePT(${p.id})">
             ${s !== 0 ? `<div class="score-badge ${s>0?'win-tag':'loss-tag'}">${s>0?'+'+s:s}</div>` : ''}
             ${p.name}
         </div>`;
     }).join('');
 
-    // 渲染隊伍卡片 (包含對隊、媽球按鈕)
+    // 隊伍詳細內容
     document.getElementById('team-list').innerHTML = teams.map(t => {
         const mems = players.filter(p => playerTeams[p.id] == t.id);
+        const otherId = t.id === 1 ? 2 : 1;
         const tScore = mems.reduce((sum, p) => sum + (sc[p.id] || 0), 0);
-        let eggHtml = '';
-        for(let i=1; i<=4; i++) {
-            eggHtml += `<div class="egg-circle ${t.e >= i?'active':''}" onclick="adjE(${t.id},${i})">${i}媽</div>`;
-        }
+        const ballCnt = t.targetK[otherId] || 0;
+
         return `<div class="card" style="border-left:8px solid ${t.id==1?'var(--blue)':'var(--red)'};">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <b>隊伍 ${t.id} (${mems.length}人)</b>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <b>隊伍 ${t.id} <span style="font-size:12px; color:var(--gray); font-weight:normal;">[${mems.map(m=>m.name).join(', ')}]</span></b>
                 <b style="color:${tScore>=0?'var(--green)':'var(--red)'}; font-size:22px;">${Math.round(tScore)}</b>
             </div>
-            <div class="egg-group">${eggHtml}</div>
+            
+            <div style="display:flex; align-items:center; background:#000; padding:8px; border-radius:10px; margin-bottom:10px;">
+                <span style="font-size:13px; flex:1;">對隊${otherId} 普通球:</span>
+                <button onclick="adjK(${t.id},${otherId},-1)" style="color:#fff; background:none; border:none; font-size:20px; width:30px;">-</button>
+                <b style="color:var(--gold); width:30px; text-align:center;">${ballCnt}</b>
+                <button onclick="adjK(${t.id},${otherId},1)" style="color:#fff; background:none; border:none; font-size:20px; width:30px;">+</button>
+            </div>
+
+            <div class="egg-group">
+                ${[1,2,3,4].map(i => `<div class="egg-circle ${t.e >= i?'active':''}" onclick="adjE(${t.id},${i})">${i}媽</div>`).join('')}
+            </div>
             <button class="win-btn ${winId==t.id?'active':''}" onclick="setWin(${t.id})">🏆 ${winId==t.id?'贏家':'標記此隊贏'}</button>
         </div>`;
     }).join('');
-
-    renderHistory();
-}
-
-// --- 功能函數 ---
-function runShuffle() {
-    players.forEach(p => document.getElementById(`p-box-${p.id}`).classList.add('shuffling'));
-    setTimeout(() => {
-        playerTeams = {};
-        players.sort(() => Math.random() - 0.5).forEach((p, i) => playerTeams[p.id] = (i % 2) + 1);
-        render();
-        document.getElementById('tut-guide').innerHTML = "💡 <b>引導：</b>分隊完成！現在試試點擊【1媽】或【標記贏家】觀察實時分數變化。";
-    }, 800);
 }
 
 function togglePT(pid) { playerTeams[pid] = ((playerTeams[pid] || 0) + 1) % 3; render(); }
 function setWin(id) { winId = (winId === id ? 0 : id); render(); }
 function adjE(tid, n) { const t = teams.find(x => x.id === tid); t.e = (t.e === n ? 0 : n); render(); }
-
-function mockSubmit() {
-    if(!winId) return alert("請先選取贏家隊伍才能送單！");
-    alert("【教學模擬】送單成功！這筆數據會暫時顯示在歷史單據中。");
-    const { sc } = calculate();
-    let desc = `局#Mock (🏆隊${winId}) `;
-    players.forEach(p => { if(sc[p.id]) desc += `${p.name}(${Math.round(sc[p.id])}) `; });
-    matches.unshift({id: Date.now(), description: desc});
-    showTab('history');
-}
-
-function renderHistory() {
-    document.getElementById('order-history').innerHTML = matches.map(m => `
-        <div class="card" style="font-size:13px; display:flex; justify-content:space-between;">
-            <span>${m.description}</span>
-            <button onclick="mockDelete(${m.id})" style="color:var(--red); border:none; background:none; font-weight:bold;">[刪除]</button>
-        </div>
-    `).join('');
-}
-
-function mockDelete(id) {
-    if(prompt("【刪單教學】輸入 8888 執行刪除：") === '8888') {
-        matches = matches.filter(m => m.id !== id);
-        render();
-    }
-}
-
-function showTab(t) {
-    ['game','history'].forEach(x => document.getElementById('tab-'+x).classList.toggle('hidden', x!==t));
-    render();
-}
+function adjK(tid, targetId, v) { const t = teams.find(x => x.id === tid); t.targetK[targetId] = Math.max(0, (t.targetK[targetId] || 0) + v); render(); }
+function runShuffle() { playerTeams = {}; players.sort(() => Math.random() - 0.5).forEach((p, i) => playerTeams[p.id] = (i % 2) + 1); render(); }
 
 render();
 </script>
