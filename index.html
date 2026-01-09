@@ -3,37 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ELITE v51.5 - 專業導覽引導版</title>
+    <title>ELITE v51.8 - 模擬教學展示版</title>
     <style>
-        /* 繼承你原本的所有 CSS */
         :root { --blue: #00d2ff; --red: #ff4757; --green: #2ed573; --gold: #ffa502; --bg: #0d1117; --card: #1c222b; --border: #30363d; --gray: #8b949e; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 12px; font-size: 16px; }
-        
         .nav-bar { display: flex; gap: 8px; margin-bottom: 15px; }
         .nav-link { flex: 1; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--blue); text-align: center; text-decoration: none; font-size: 14px; font-weight: bold; }
-
-        /* 新增：教學引導條樣式 */
-        .guide-bar { background: linear-gradient(90deg, #1e293b, #0f172a); border-left: 5px solid var(--gold); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .guide-step { color: var(--gold); font-weight: bold; margin-right: 5px; }
-
-        /* 新增：跑馬燈全螢幕特效 */
-        #marquee-overlay { position: fixed; top: 40%; left: 0; width: 100%; background: var(--gold); color: #000; font-weight: 900; padding: 15px 0; z-index: 9999; display: none; transform: rotate(-5deg); font-size: 24px; text-align: center; white-space: nowrap; overflow: hidden; }
-        .marquee-content { display: inline-block; animation: scroll-left 1.5s linear infinite; }
-        @keyframes scroll-left { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
-
-        /* 你原本的其餘 CSS */
         .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .config-box { background: var(--card); padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .big-in { width: 65px; background: #000; border: 1px solid #444; color: var(--gold); text-align: center; border-radius: 8px; font-size: 18px; padding: 5px; font-weight: bold; }
         .p-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 10px; }
         .p-btn { padding: 18px 5px; background: #21262d; border: 2.5px solid var(--border); border-radius: 15px; text-align: center; font-weight: bold; font-size: 18px; transition: 0.2s; position: relative; }
-        .shuffling { animation: shuffle-anim 0.1s infinite; }
-        @keyframes shuffle-anim { 0% { transform: scale(1); } 50% { transform: scale(1.05); background: var(--blue); } 100% { transform: scale(1); } }
         .t-1 { border-color: var(--blue) !important; color: var(--blue); }
         .t-2 { border-color: var(--red) !important; color: var(--red); }
-        .egg-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-        .egg-circle { width: 48px; height: 48px; border-radius: 50%; border: 2.5px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-        .egg-circle.active { background: var(--gold); color: #000; border: 3px solid #fff; box-shadow: 0 0 15px var(--gold); }
         .card { background: var(--card); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid var(--border); }
         .score-badge { position: absolute; top: -10px; right: -5px; padding: 2px 10px; border-radius: 8px; font-size: 14px; font-weight: 900; }
         .win-tag { background: var(--green); color: #000; }
@@ -44,25 +26,21 @@
         .win-btn { width: 100%; padding: 18px; border-radius: 15px; margin-top: 12px; border: 1px solid #333; background: #21262d; color: #fff; font-size: 18px; font-weight: bold; }
         .win-btn.active { background: var(--green); color: #000; }
         .hidden { display: none; }
+        /* 教學提示浮窗 */
+        .tutorial-hint { background: var(--gold); color: #000; padding: 15px; border-radius: 12px; font-weight: bold; margin-bottom: 15px; border: 2px solid #fff; }
     </style>
 </head>
 <body>
 
-<div class="guide-bar" id="guide-bar">
-    <span class="guide-step">STEP 1:</span> 前往【錢包】點擊下線成員將其改為上線。
+<div class="tutorial-hint" id="tut-msg">
+    🎓 <b>新手教學模式已啟動</b><br>
+    系統已自動載入「模擬成員」與「歷史數據」。
 </div>
-
-<div class="nav-bar">
-    <a href="https://fanuman001.github.io/-pool/" target="_blank" class="nav-link">📊 導覽中心後台</a>
-    <a href="#" onclick="allOffline()" class="nav-link" style="color:var(--red)">💤 全員下線</a>
-</div>
-
-<div id="marquee-overlay"><div class="marquee-content">🎰 正在隨機分配隊伍... 🎲 命運對局挑選中... 🎲 🎰 正在隨機分配隊伍...</div></div>
 
 <div class="tabs">
-    <div id="tab-btn-game" class="tab active" onclick="showTab('game')">⚔️ 戰場</div>
-    <div id="tab-btn-wallet" class="tab" onclick="showTab('wallet')">💎 錢包</div>
-    <div id="tab-btn-history" class="tab" onclick="showTab('history')">📊 數據</div>
+    <div id="tab-btn-game" class="tab active" onclick="showTab('game')">⚔️ 模擬戰場</div>
+    <div id="tab-btn-wallet" class="tab" onclick="showTab('wallet')">💎 模擬成員</div>
+    <div id="tab-btn-history" class="tab" onclick="showTab('history')">📊 模擬數據</div>
 </div>
 
 <div id="tab-game">
@@ -70,109 +48,125 @@
         <div class="config-box"><span>底金</span><input id="v-base" class="big-in" type="number" value="75" oninput="render()"></div>
         <div class="config-box"><span>球價</span><input id="v-ball" class="big-in" type="number" value="25" oninput="render()"></div>
         <div class="config-box"><span>媽價</span><input id="v-egg" class="big-in" type="number" value="50" oninput="render()"></div>
-        <div class="config-box"><span>2媽倍</span><input id="v-m2" class="big-in" type="number" value="3" oninput="render()"></div>
     </div>
 
     <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button onclick="showTab('wallet')" style="background:none; border:1px solid var(--blue); color:var(--blue); padding:8px 15px; border-radius:10px;">👤 成員上線</button>
-            <button onclick="runShuffleEnhanced()" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; font-weight:bold; font-size:18px;">🎰 隨機分隊</button>
-        </div>
         <div id="p-grid" class="p-grid"></div>
     </div>
     
     <div id="team-list"></div>
     
-    <button onclick="sendOrder()" style="width:100%; padding:25px; background:var(--green); color:#000; border:none; border-radius:20px; font-weight:900; font-size:24px; margin-bottom:20px; box-shadow: 0 5px 15px rgba(46, 213, 115, 0.3);">🚀 送單計分</button>
+    <button onclick="mockSendOrder()" style="width:100%; padding:25px; background:var(--green); color:#000; border:none; border-radius:20px; font-weight:900; font-size:24px; margin-bottom:20px;">🚀 模擬送單 (不寫入DB)</button>
 </div>
 
 <div id="tab-wallet" class="hidden">
     <div class="card">
+        <h3>👥 模擬名單 (教學用)</h3>
         <div id="wallet-online"></div>
-        <b style="color:var(--gray); display:block; margin-top:20px; margin-bottom:10px;">🔴 未上線成員 (點擊切換上線)</b>
-        <div id="wallet-offline" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
     </div>
 </div>
 
 <div id="tab-history" class="hidden">
+    <h3>📜 模擬歷史單 (含刪除教學)</h3>
     <div id="order-history"></div>
 </div>
 
 <script>
-// --- 完全保留你原本的 API 與邏輯變數 ---
-const API_URL = 'https://nzuxyiefpenwuqudajdw.supabase.co/rest/v1';
-const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
-const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+// --- 模擬數據資料 ---
+let players = [
+    {id: 101, name: "測試阿明", money: 150},
+    {id: 102, name: "測試小華", money: -75},
+    {id: 103, name: "測試大強", money: 0},
+    {id: 104, name: "測試老王", money: 225},
+    {id: 105, name: "測試杰哥", money: -300},
+    {id: 106, name: "測試艾力", money: 0}
+];
 
-let players = [], matches = [], teams = [{id:1, e:0, targetK:{}}, {id:2, e:0, targetK:{}}], playerTeams = {}, winId = 0;
+let matches = [
+    {id: 9991, created_at: "2023-10-01T10:00:00", description: "局#8801 (🏆隊1) 測試阿明(75) 測試小華(-75) "},
+    {id: 9992, created_at: "2023-10-01T10:30:00", description: "局#8802 (🏆隊2) 測試老王(150) 測試杰哥(-150) "},
+    {id: 9993, created_at: "2023-10-01T11:00:00", description: "💰 結單：測試阿明:150 | 測試老王:225 | "}
+];
 
-// --- 增強版教學邏輯 ---
-function updateGuide() {
-    const guide = document.getElementById('guide-bar');
-    const onlinePlayers = players.filter(p => !p.name.startsWith('OFF_')).length;
-    const isTeamed = Object.keys(playerTeams).length > 0;
+let teams = [{id:1, e:0, targetK:{}}, {id:2, e:0, targetK:{}}];
+let playerTeams = {101: 1, 102: 2, 103: 1, 104: 2}; // 預設分好隊
+let winId = 1;
 
-    if (onlinePlayers < 2) {
-        guide.innerHTML = `<span class="guide-step">STEP 1:</span> 前往【錢包】點擊下線成員將其改為上線。`;
-    } else if (!isTeamed) {
-        guide.innerHTML = `<span class="guide-step">STEP 2:</span> 點擊【隨機分隊】或手動點選球員分隊。`;
-    } else if (winId === 0) {
-        guide.innerHTML = `<span class="guide-step">STEP 3:</span> 根據對局結果，標記哪一隊是【🏆 贏家】。`;
-    } else {
-        guide.innerHTML = `<span class="guide-step">STEP 4:</span> 確認計算金額無誤後，點擊【🚀 送單計分】。`;
+// --- 邏輯保持與 v51.0 一致，但修改 API 呼叫為模擬動作 ---
+function calculate() {
+    const base = Number(document.getElementById('v-base').value);
+    const sc = {};
+    players.forEach(p => {
+        if(playerTeams[p.id] === 1) sc[p.id] = base;
+        if(playerTeams[p.id] === 2) sc[p.id] = -base;
+    });
+    return { sc };
+}
+
+function render() {
+    const { sc } = calculate();
+    // 渲染 P-Grid
+    document.getElementById('p-grid').innerHTML = players.map(p => {
+        const tid = playerTeams[p.id] || 0;
+        const s = Math.round(sc[p.id] || 0);
+        return `<div class="p-btn t-${tid}" onclick="togglePT(${p.id})">
+            ${s !== 0 ? `<div class="score-badge ${s>0?'win-tag':'loss-tag'}">${s>0?'+'+s:s}</div>` : ''}
+            ${p.name}
+        </div>`;
+    }).join('');
+
+    // 渲染 Team List (簡化版)
+    document.getElementById('team-list').innerHTML = teams.map(t => {
+        const mems = players.filter(p => playerTeams[p.id] == t.id);
+        return `<div class="card" style="border-left:8px solid ${t.id==1?'var(--blue)':'var(--red)'};">
+            <b>隊伍 ${t.id}</b>
+            <button class="win-btn ${winId==t.id?'active':''}" onclick="setWin(${t.id})">🏆 ${winId==t.id?'贏家':'標記此隊贏'}</button>
+        </div>`;
+    }).join('');
+
+    // 渲染錢包
+    document.getElementById('wallet-online').innerHTML = players.map(p => `
+        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;">
+            <b>${p.name}</b>
+            <b style="color:${p.money>=0?'var(--green)':'var(--red)'}">${p.money}</b>
+        </div>
+    `).join('');
+
+    renderHistory();
+}
+
+function renderHistory() {
+    document.getElementById('order-history').innerHTML = matches.map(m => `
+        <div class="card" style="font-size:13px; display:flex; justify-content:space-between;">
+            <span>${m.description}</span>
+            <button onclick="mockDelete(${m.id})" style="color:var(--red); border:none; background:none; font-weight:bold;">[教學刪除]</button>
+        </div>
+    `).join('');
+}
+
+// 教學用模擬功能
+function mockSendOrder() {
+    alert("【教學演示】\n送單成功！在正式版中，阿明的錢包會增加 75 元，並產生一筆歷史紀錄。");
+    document.getElementById('tut-msg').innerHTML = "✅ <b>教學完成：送單成功</b><br>請前往【模擬數據】查看剛產生的單據，並練習「刪單」。";
+    showTab('history');
+}
+
+function mockDelete(id) {
+    if (prompt("【刪單教學】輸入 8888 執行刪除：") === '8888') {
+        matches = matches.filter(m => m.id !== id);
+        render();
+        alert("刪除成功！注意：錢包金額已回滾（演示）。");
     }
 }
 
-// --- 強化版隨機分隊 (帶跑馬燈) ---
-function runShuffleEnhanced() {
-    const on = players.filter(p => !p.name.startsWith('OFF_'));
-    if(!on.length) return alert("請先選擇球員上線！");
-    
-    // 顯示跑馬燈
-    const marquee = document.getElementById('marquee-overlay');
-    marquee.style.display = 'block';
-    
-    // 原本的震動動畫
-    on.forEach(p => { if(document.getElementById(`p-box-${p.id}`)) document.getElementById(`p-box-${p.id}`).classList.add('shuffling'); });
-
-    setTimeout(() => {
-        marquee.style.display = 'none';
-        playerTeams = {};
-        on.sort(() => Math.random() - 0.5).forEach((p, i) => playerTeams[p.id] = (i % teams.length) + 1);
-        render();
-        updateGuide();
-    }, 1200);
+function togglePT(pid) { playerTeams[pid] = ((playerTeams[pid] || 0) + 1) % 3; render(); }
+function setWin(id) { winId = id; render(); }
+function showTab(t) { 
+    ['game','wallet','history'].forEach(x => document.getElementById('tab-'+x).classList.toggle('hidden', x!==t));
+    ['game','wallet','history'].forEach(x => document.getElementById('tab-btn-'+x).classList.toggle('active', x===t));
 }
 
-// --- 保留你原本所有的計算與渲染函數，僅在 render 末尾加入 updateGuide ---
-async function init() {
-    try {
-        const [pRes, hRes] = await Promise.all([
-            fetch(`${API_URL}/players?select=*`, { headers: HEADERS }),
-            fetch(`${API_URL}/history?select=*&order=created_at.desc`, { headers: HEADERS })
-        ]);
-        players = await pRes.json();
-        matches = await hRes.json();
-        render();
-    } catch(e) { console.error("初始化失敗", e); }
-}
-
-// (中間省略：calculate, patch, togglePT, setWin, adjE, adjK 等函數均保持你原本的代碼，不作改動)
-
-function render() {
-    // ... 執行你原本的所有 render 邏輯 ...
-    // (將你原本 script 標籤內 render 函數的內容完整貼回這裡)
-    
-    // [這裡省略是為了保持回答簡潔，實際執行時需完整保留你原本的邏輯]
-    
-    // ... 原有 render 結尾處加入：
-    updateGuide();
-}
-
-// 加回你原本的 calculate 等所有函數...
-// (此處請確保將你穩定版中 calculate, renderHistory, getWR 等函數內容完整補回)
-
-init();
+render();
 </script>
 </body>
 </html>
