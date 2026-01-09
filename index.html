@@ -3,224 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELITE - 動態導航中心</title>
+    <title>🎱 ELITE PRO - 互動教學導航</title>
     <style>
-        :root {
-            --bg: #0d1117;
-            --card: #1c222b;
-            --border: #30363d;
-            --blue: #00d2ff;
-            --gold: #ffa502;
-            --red: #ff4757;
-            --text: #c9d1d9;
+        :root { 
+            --blue: #0084ff; --red: #ff3333; --green: #00ff88; --gold: #ffd700;
+            --bg: #050505; --card: #12141a; --panel: #1c1f26; --text: #f0f0f0; --border: #2d333b;
         }
-
-        body {
-            font-family: -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        body { font-family: "PingFang TC", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; overflow-x: hidden; }
+        .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        @media (max-width: 800px) { .main-layout { grid-template-columns: 1fr; } }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .section-header { font-size: 1rem; color: #8b949e; font-weight: 900; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .config-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; background: #000; padding: 15px; border-radius: 10px; }
+        .config-item label { display: block; font-size: 0.7rem; color: #555; text-align: center; }
+        .config-item input { width: 100%; background: none; border: none; color: var(--gold); text-align: center; font-size: 1.2rem; font-weight: bold; outline: none; }
+        .team-box { border-left: 5px solid var(--t-color); background: rgba(255,255,255,0.02); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .win-btn { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: bold; color: white; }
+        .egg-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+        .egg-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; cursor: pointer; }
+        .egg-dot.active { border-color: #fff; background: var(--gold); color: #000; box-shadow: 0 0 10px var(--gold); }
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
+        .p-btn { padding: 12px 5px; background: var(--panel); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; font-size: 0.9rem; font-weight: bold; color: #fff; border-color: var(--blue); }
+        .list-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #1a1d23; }
+        .btn-main { width: 100%; padding: 18px; background: linear-gradient(135deg, #238636, #2ea043); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; font-size: 1.1rem; }
+        
+        /* 教學提示框樣式 */
+        #tutorial-toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: var(--blue); color: white; padding: 15px 25px; border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 10000; font-weight: bold;
+            display: none; text-align: center; border: 2px solid white;
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 800px;
-            margin-bottom: 25px;
+        .principle-box {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px;
         }
-
-        h2 { color: var(--blue); margin: 0; }
-
-        .admin-unlock {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--border);
-            padding: 5px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        /* 新增按鈕的面板 */
-        #admin-panel {
-            background: var(--card);
-            border: 1px solid var(--gold);
-            padding: 20px;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 800px;
-            margin-bottom: 20px;
-            display: none; /* 預設隱藏 */
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        input {
-            flex: 1;
-            padding: 12px;
-            background: #000;
-            border: 1px solid var(--border);
-            color: #fff;
-            border-radius: 8px;
-            min-width: 150px;
-        }
-
-        .add-btn {
-            background: var(--gold);
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* 導航網格 */
-        .nav-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 15px;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .nav-item {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            padding: 20px 10px;
-            text-align: center;
-            text-decoration: none;
-            color: white;
-            font-weight: bold;
-            transition: 0.2s;
-            position: relative;
-        }
-
-        .nav-item:hover {
-            border-color: var(--blue);
-            transform: translateY(-3px);
-        }
-
-        /* 刪除按鈕 */
-        .del-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: var(--red);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            display: none; /* 預設隱藏，管理模式才開啟 */
-        }
-
-        .hidden { display: none; }
+        .p-guide-btn { padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2>🌐 導航中心</h2>
-        <button class="admin-unlock" onclick="unlockAdmin()">⚙️ 管理員模式</button>
+    <h2 style="text-align:center; color: var(--gold); letter-spacing: 8px; margin: 20px 0;">🎱 教學模式 <span style="font-size:0.8rem; color: #555;">v5.2 GUIDE</span></h2>
+
+    <div class="main-layout">
+        <div class="column">
+            <div class="card" onclick="showTip('點擊球員可以將他循環分配到不同隊伍中。')">
+                <div class="section-header">👥 出戰成員 (點擊測試)</div>
+                <div class="player-grid">
+                    <div class="p-btn">玩家 A</div>
+                    <div class="p-btn">玩家 B</div>
+                    <div class="p-btn">玩家 C</div>
+                    <div class="p-btn">玩家 D</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-header">
+                    <span>⚙️ 局設定</span>
+                    <button onclick="showTip('🎰 隨機分隊：系統會自動打散上線成員，平均分派到各隊。')" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">🎰 隨機分隊</button>
+                </div>
+                <div class="config-grid">
+                    <div class="config-item" onclick="showTip('贏底：獲勝隊伍從每支輸家隊伍收取的基礎總額。')"><label>贏底</label><input type="number" value="150" readonly></div>
+                    <div class="config-item" onclick="showTip('普通球：定向球的單價，攻擊成功即轉移該金額。')"><label>普通球</label><input type="number" value="50" readonly></div>
+                    <div class="config-item" onclick="showTip('彩蛋單價：每一顆彩蛋(媽球)的計算基數。')"><label>彩蛋單價</label><input type="number" value="50" readonly></div>
+                </div>
+
+                <div class="team-box" style="--t-color: var(--blue)" onclick="showTip('隊伍面板：包含獲勝標記、擊球數(定向)與彩蛋設定。')">
+                    <div class="section-header">藍隊</div>
+                    <button class="win-btn" style="background:var(--blue)">🏆 獲勝 (收底金)</button>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>擊球: <b style="color:var(--blue); font-size:1.5rem;">3</b></span>
+                        <small>點擊 +/- 調整定向球</small>
+                    </div>
+                    <div class="egg-group">
+                        <div class="egg-dot active">1x</div>
+                        <div class="egg-dot">2</div>
+                        <small>點擊圓點設定彩蛋(媽球)倍率</small>
+                    </div>
+                </div>
+
+                <button class="btn-main" onclick="showTip('🚀 結算：根據底金、球數、彩蛋綜合計算後，同步到所有人的錢包。')">🚀 結算對局 (點擊看說明)</button>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="card">
+                <div class="section-header">💎 錢包與勝率 (點擊數值可手動修改)</div>
+                <div class="list-row">
+                    <span>✅ 玩家 A <small style="color:var(--blue)">60% 勝率</small></span>
+                    <b class="wallet-val" style="color:var(--green)">+1250</b>
+                </div>
+                <div class="list-row" onclick="showTip('💤 點擊勾選框可以將球員設為下線，該球員將不參與分隊。')">
+                    <span>💤 玩家 B <small style="color:var(--blue)">40% 勝率</small></span>
+                    <b class="wallet-val" style="color:var(--red)">-450</b>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-header">🧠 計算原理詳解 (點擊按鈕)</div>
+                <div class="principle-box">
+                    <button class="p-guide-btn" style="background:var(--gold); color:black;" onclick="explain('base')">底金公式</button>
+                    <button class="p-guide-btn" style="background:var(--blue); color:white;" onclick="explain('egg')">彩蛋倍率</button>
+                    <button class="p-guide-btn" style="background:var(--red); color:white;" onclick="explain('kill')">擊球計算</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="admin-panel">
-        <div style="margin-bottom: 10px; font-weight: bold; color: var(--gold);">新增快捷連結</div>
-        <div class="input-group">
-            <input type="text" id="link-name" placeholder="名稱 (例如: 計分系統)">
-            <input type="text" id="link-url" placeholder="網址 (https://...)">
-            <button class="add-btn" onclick="addLink()">確認新增</button>
-        </div>
-        <button onclick="lockAdmin()" style="margin-top: 15px; background: none; border: 1px solid var(--red); color: var(--red); padding: 5px 10px; border-radius: 5px; cursor: pointer;">結束管理並鎖定</button>
-    </div>
-
-    <div class="nav-grid" id="nav-grid">
-        </div>
+    <div id="tutorial-toast">提示訊息</div>
 
     <script>
-        let links = JSON.parse(localStorage.getItem('elite_nav_links')) || [
-            { name: 'Supabase', url: 'https://supabase.com' },
-            { name: 'Google', url: 'https://google.com' }
-        ];
+        function showTip(text) {
+            const toast = document.getElementById('tutorial-toast');
+            toast.innerText = text;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3500);
+        }
 
-        let isAdmin = false;
-
-        function renderLinks() {
-            const grid = document.getElementById('nav-grid');
-            grid.innerHTML = links.map((link, index) => `
-                <div class="nav-item">
-                    <a href="${link.url}" target="_blank" style="color:white; text-decoration:none; display:block; width:100%; height:100%;">
-                        <div style="font-size: 24px; margin-bottom: 8px;">🔗</div>
-                        <div>${link.name}</div>
-                    </a>
-                    <button class="del-btn" id="del-${index}" onclick="removeLink(${index})">×</button>
-                </div>
-            `).join('');
-
-            // 如果是管理模式，顯示刪除按鈕
-            if (isAdmin) {
-                document.querySelectorAll('.del-btn').forEach(btn => btn.style.display = 'block');
+        function explain(type) {
+            let msg = "";
+            if(type === 'base') {
+                msg = "【底金計算原理】\n\n1. 系統會抓取當前所有隊伍中「人數最多」的一隊作為基準。\n2. 公式：底金金額 x 人數。\n3. 輸家隊伍每人平分這筆錢，交給贏家隊伍平分。\n\n※ 這確保了不管幾個人打幾個人，總金額永遠是平衡的。";
+            } else if(type === 'egg') {
+                msg = "【彩蛋(媽球)倍率】\n\n1. 第一顆彩蛋預設為 1x 單價。\n2. 第二顆彩蛋(2媽)預設為 3x 單價。\n3. 第三顆以後可以自定義倍率。\n\n計算方式：(我隊總倍率 - 他隊總倍率) x 彩蛋單價。";
+            } else if(type === 'kill') {
+                msg = "【擊球(定向)計算】\n\n擊球屬於隊伍間的直接轉移。\n\n計算方式：(A隊擊球數 - B隊擊球數) x 普通球單價。\n多隊情況下，會分別對每一支敵對隊伍進行計算並加總。";
             }
+            alert(msg);
         }
 
-        function unlockAdmin() {
-            const pass = prompt("請輸入管理密碼:");
-            if (pass === "8888") {
-                isAdmin = true;
-                document.getElementById('admin-panel').style.display = 'block';
-                renderLinks();
-            } else {
-                alert("密碼錯誤！");
-            }
-        }
-
-        function lockAdmin() {
-            isAdmin = false;
-            document.getElementById('admin-panel').style.display = 'none';
-            renderLinks();
-        }
-
-        function addLink() {
-            const name = document.getElementById('link-name').value;
-            const url = document.getElementById('link-url').value;
-
-            if (!name || !url) return alert("請輸入完整名稱與網址");
-
-            links.push({ name, url });
-            saveAndRender();
-            
-            // 清空輸入框
-            document.getElementById('link-name').value = '';
-            document.getElementById('link-url').value = '';
-        }
-
-        function removeLink(index) {
-            if (confirm("確定要刪除這個連結嗎？")) {
-                links.splice(index, 1);
-                saveAndRender();
-            }
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('elite_nav_links', JSON.stringify(links));
-            renderLinks();
-        }
-
-        // 初始化
-        renderLinks();
+        // 禁止頁面所有輸入框
+        document.querySelectorAll('input').forEach(i => i.setAttribute('readonly', true));
     </script>
 </body>
 </html>
+
