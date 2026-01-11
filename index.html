@@ -3,150 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELITE DATA TERMINAL</title>
+    <title>ELITE DATA SYSTEM PRO</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        :root { --blue: #00d2ff; --gold: #ffa502; --bg: #0d1117; --card: #1c222b; --border: #30363d; --gray: #8b949e; }
-        body { background: var(--bg); color: #e6edf3; font-family: sans-serif; padding: 15px; margin: 0 auto; max-width: 500px; }
-        
-        .section { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 15px; margin-bottom: 15px; }
-        .label { color: var(--gold); font-size: 12px; font-weight: bold; margin-bottom: 8px; display: block; }
-        
-        select, input { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; }
-        
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-blue { background: var(--blue); color: #000; }
-        .btn-gold { background: var(--gold); color: #000; grid-column: span 2; margin-top: 10px; font-size: 16px; }
-        
-        .status { font-size: 12px; text-align: center; color: var(--gray); margin-top: 10px; }
+        :root { --blue: #00d2ff; --gold: #ffa502; --bg: #0d1117; --card: #1c222b; --border: #30363d; --gray: #8b949e; --red: #ff4757; }
+        body { background: var(--bg); color: #e6edf3; font-family: -apple-system, sans-serif; padding: 15px; max-width: 500px; margin: 0 auto; line-height: 1.5; }
+        .box { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .label { font-size: 13px; color: var(--gold); font-weight: bold; margin-bottom: 8px; display: block; letter-spacing: 1px; }
+        select, input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--border); background: #000; color: #fff; box-sizing: border-box; font-size: 15px; }
+        .btn-main { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 900; cursor: pointer; font-size: 17px; background: linear-gradient(135deg, #00d2ff, #0072ff); color: white; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,198,255,0.3); }
+        .btn-main:active { transform: scale(0.96); opacity: 0.8; }
+        .status { text-align: center; font-size: 12px; color: var(--gray); margin-top: 10px; }
+        .date-group { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: var(--blue); text-align: center;">📊 ELITE 數據終端</h2>
+    <h2 style="color: var(--blue); text-align: center; letter-spacing: 3px; margin-bottom: 20px;">💎 ELITE 業務終端</h2>
 
-    <div class="section">
-        <span class="label">發送維度 & 類型</span>
-        <select id="target-player">
-            <option value="ALL">📢 全體成員 (群組戰報)</option>
-            </select>
+    <div class="box">
+        <span class="label">👤 業務對象</span>
+        <select id="p-sel"><option value="ALL">📢 全體成員數據分析</option></select>
         
-        <select id="data-type" onchange="toggleInputs()">
-            <option value="game_stats">🏆 歷史遊戲戰績 (Total K/D/W)</option>
-            <option value="financial_summary">💰 生活雜支 & 結單 (含欠款)</option>
-            <option value="smart_split">⚖️ 智慧分錢 (自動結算分配)</option>
+        <span class="label">💼 數據挖掘模式</span>
+        <select id="t-sel">
+            <option value="HIST_RANK">🏆 歷史總戰績 (History 表 - 遊戲專屬)</option>
+            <option value="PURE_EXPENSE">⚖️ 智慧分錢 (Ledger 表 - 排除遊戲)</option>
+            <option value="CURR_SETTLE">🧾 即時結單 (Players 表 - 錢/債)</option>
+            <option value="TOTAL_LOG">📜 完整流水紀錄 (Ledger_logs 全開)</option>
         </select>
-    </div>
-
-    <div class="section">
-        <span class="label">時間範圍 (可選)</span>
-        <div style="display: flex; gap: 5px;">
-            <input type="date" id="date-start">
-            <input type="date" id="date-end">
+        
+        <span class="label">📅 時間維度 (未選則為今天)</span>
+        <div class="date-group">
+            <input type="date" id="d-start">
+            <input type="date" id="d-end">
         </div>
     </div>
 
-    <div class="btn-grid">
-        <button class="btn btn-blue" onclick="previewData()">👁️ 預覽數據</button>
-        <button class="btn btn-blue" onclick="location.reload()">🔄 刷新數據</button>
-        <button class="btn btn-gold" onclick="processAndSend()">🚀 生成並發送卡片</button>
-    </div>
-
-    <div id="status" class="status">正在同步 Supabase 資料庫...</div>
+    <button class="btn-main" onclick="processBusiness()">🚀 生成並發送專業業務卡片</button>
+    <div id="status" class="status">正在同步資料庫...</div>
 
 <script>
-    const API_URL = 'https://nzuxyiefpenwuqudajdw.supabase.co/rest/v1';
+    const API = 'https://nzuxyiefpenwuqudajdw.supabase.co/rest/v1';
     const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
     const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
     const LIFF_ID = "2008868088-9hbWzzlW";
-
-    let players = [], logs = [], expenses = [];
 
     async function init() {
         try {
             await liff.init({ liffId: LIFF_ID });
             if (!liff.isLoggedIn()) liff.login();
-            await loadAllData();
-        } catch (e) { document.getElementById('status').innerText = "初始化失敗"; }
+            
+            // 載入玩家清單
+            const res = await fetch(`${API}/players?select=*&order=name.asc`, { headers: HEADERS });
+            const data = await res.json();
+            const sel = document.getElementById('p-sel');
+            data.filter(p => !p.name.startsWith('OFF_')).forEach(p => sel.add(new Option(`👤 ${p.name}`, p.name)));
+            document.getElementById('status').innerText = "🟢 資料庫連線正常";
+        } catch (e) { document.getElementById('status').innerText = "🔴 初始化失敗"; }
     }
 
-    async function loadAllData() {
-        const [pRes, lRes, eRes] = await Promise.all([
-            fetch(`${API_URL}/players?select=*`, { headers: HEADERS }),
-            fetch(`${API_URL}/game_logs?select=*`, { headers: HEADERS }), // 假設你有這個表
-            fetch(`${API_URL}/expenses?select=*`, { headers: HEADERS })  // 假設你有雜支表
-        ]);
-        players = await pRes.json();
-        // 載入玩家清單到下拉選單
-        const select = document.getElementById('target-player');
-        players.forEach(p => {
-            if(!p.name.startsWith('OFF_')) {
-                let opt = new Option(`👤 個人：${p.name}`, p.name);
-                select.add(opt);
+    async function processBusiness() {
+        const type = document.getElementById('t-sel').value;
+        const target = document.getElementById('p-sel').value;
+        const today = new Date().toISOString().split('T')[0];
+        const start = document.getElementById('d-start').value || today;
+        const end = document.getElementById('d-end').value || start;
+
+        document.getElementById('status').innerText = "⚡ 正在執行業務分析...";
+        let flex;
+
+        try {
+            if (type === 'HIST_RANK') {
+                // 1. 遊戲戰績：只看 History 表，這是權威紀錄
+                const data = await fetch(`${API}/History?created_at=gte.${start}&created_at=lte.${end}`, { headers: HEADERS }).then(r => r.json());
+                flex = buildHistoryCard(data, start, end);
+            } 
+            else if (type === 'PURE_EXPENSE') {
+                // 2. 智慧分錢：看 Ledger，但排除遊戲匯入項目，避免重複
+                const logs = await fetch(`${API}/ledger_logs?created_at=gte.${start}&created_at=lte.${end}`, { headers: HEADERS }).then(r => r.json());
+                const players = await fetch(`${API}/players?select=name`, { headers: HEADERS }).then(r => r.json());
+                // 核心去重邏輯：排除備註包含「遊戲」或來自系統匯入的紀錄
+                const pureLogs = logs.filter(l => !((l.note || "").includes("遊戲") || (l.type || "").includes("game")));
+                flex = buildDivideCard(pureLogs, players.length, start);
             }
-        });
-        document.getElementById('status').innerText = "🟢 資料庫連線正常";
-    }
+            else if (type === 'CURR_SETTLE') {
+                // 3. 即時結單：看當前 players 表中的錢跟債
+                const p = await fetch(`${API}/players?name=eq.${target}`, { headers: HEADERS }).then(r => r.json());
+                flex = buildSettleCard(target, p[0]);
+            }
 
-    // 核心邏輯：根據選擇生成不同的 Flex 內容
-    async function processAndSend() {
-        const target = document.getElementById('target-player').value;
-        const type = document.getElementById('data-type').value;
-        
-        let flexContent;
-        
-        if (type === 'game_stats') {
-            flexContent = generateGameFlex(target);
-        } else if (type === 'financial_summary') {
-            flexContent = generateFinanceFlex(target);
-        } else if (type === 'smart_split') {
-            flexContent = generateSplitFlex();
+            // 發送至 LINE
+            const res = await liff.shareTargetPicker([{ "type": "flex", "altText": "ELITE 數據匯總", "contents": flex }]);
+            if (res) document.getElementById('status').innerText = "✅ 發送成功";
+        } catch (err) {
+            alert("業務執行失敗，請檢查資料庫欄位");
+            console.error(err);
         }
-
-        sendToLine(flexContent);
     }
 
-    // 1. 遊戲戰績卡片生成 (示範邏輯)
-    function generateGameFlex(target) {
-        // 這裡過濾數據... 
+    // --- LINE 卡片工廠 (Flex Message Templates) ---
+
+    function buildHistoryCard(data, s, e) {
+        // 假設 History 欄位為 name 和 total_score (請依實際欄位微調)
+        const summary = data.reduce((acc, d) => {
+            const n = d.name || d.player_name;
+            const v = d.total_score || d.score || 0;
+            acc[n] = (acc[n] || 0) + v;
+            return acc;
+        }, {});
+        const sorted = Object.entries(summary).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
         return {
-            "type": "bubble",
-            "header": { "type": "box", "layout": "vertical", "contents": [{"type": "text", "text": "ELITE 戰績記錄", "color": "#00d2ff", "weight": "bold"}]},
-            "body": { "type": "box", "layout": "vertical", "contents": [
-                {"type": "text", "text": target === 'ALL' ? "全體總和" : `成員：${target}`, "size": "xl", "color": "#ffffff"},
-                {"type": "separator", "margin": "md"},
-                {"type": "text", "text": "歷史勝場：150", "color": "#aaaaaa", "margin": "sm"},
-                {"type": "text", "text": "上次結單欠額：$500", "color": "#ffa502"}
-            ]}
+            "type": "bubble", "styles": { "header": { "backgroundColor": "#000000" }, "body": { "backgroundColor": "#111111" } },
+            "header": { "type": "box", "layout": "vertical", "contents": [
+                { "type": "text", "text": "🏆 歷史戰績大數據", "color": "#ffa502", "weight": "bold", "size": "sm" },
+                { "type": "text", "text": `${s} ~ ${e}`, "color": "#888888", "size": "xxs", "margin": "xs" }
+            ]},
+            "body": { "type": "box", "layout": "vertical", "spacing": "sm", "contents": sorted.map(([n, v]) => ({
+                "type": "box", "layout": "horizontal", "contents": [
+                    { "type": "text", "text": n, "color": "#ffffff", "size": "sm" },
+                    { "type": "text", "text": v.toString(), "color": "#00d2ff", "align": "end", "weight": "bold" }
+                ]
+            }))}
         };
     }
 
-    // 2. 智慧分錢與雜支邏輯
-    function generateFinanceFlex(target) {
-        // 計算個人或群組雜支...
+    function buildDivideCard(logs, count, date) {
+        const total = logs.reduce((s, l) => s + (l.amount || 0), 0);
+        const per = Math.round(total / (count || 1));
         return {
-            "type": "bubble",
-            "body": { "type": "box", "layout": "vertical", "contents": [
-                {"type": "text", "text": "💰 財務結單公告", "weight": "bold", "color": "#ffa502"},
-                {"type": "text", "text": `對象：${target}`, "margin": "md", "color": "#ffffff"},
-                {"type": "box", "layout": "vertical", "margin": "lg", "contents": [
-                    {"type": "text", "text": "本期支出：$1,200", "color": "#eeeeee"},
-                    {"type": "text", "text": "歷史累積欠款：$3,450", "color": "#ff4757", "size": "sm"}
+            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#0d1117", "paddingAll": "20px", "contents": [
+                { "type": "text", "text": "⚖️ 生活雜支智慧結算", "color": "#ffa502", "weight": "bold", "size": "xs" },
+                { "type": "text", "text": `$${total}`, "size": "xxxl", "color": "#ffffff", "weight": "bold", "margin": "md" },
+                { "type": "text", "text": "已排除遊戲重複數據", "size": "xxs", "color": "#888888" },
+                { "type": "separator", "margin": "xl", "color": "#333333" },
+                { "type": "box", "layout": "vertical", "margin": "xl", "spacing": "sm", "contents": [
+                    { "type": "box", "layout": "horizontal", "contents": [{ "type": "text", "text": "參與人數", "color": "#aaaaaa", "size": "sm" }, { "type": "text", "text": `${count} 人`, "color": "#ffffff", "align": "end", "size": "sm" }] },
+                    { "type": "box", "layout": "horizontal", "contents": [{ "type": "text", "text": "每人平均", "color": "#ffffff", "weight": "bold" }, { "type": "text", "text": `$${per}`, "color": "#00d2ff", "align": "end", "weight": "bold", "size": "lg" }] }
                 ]}
             ]}
         };
     }
 
-    // LINE 發送
-    async function sendToLine(flex) {
-        try {
-            await liff.shareTargetPicker([{ "type": "flex", "altText": "ELITE 數據分析", "contents": flex }]);
-        } catch (e) { alert("發送失敗，請檢查權限"); }
+    function buildSettleCard(name, p) {
+        return {
+            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#1c222b", "contents": [
+                { "type": "text", "text": "🧾 即時業務結單", "color": "#00d2ff", "weight": "bold", "size": "sm" },
+                { "type": "text", "text": name === 'ALL' ? "全體財務摘要" : name, "size": "xl", "color": "#ffffff", "weight": "bold", "margin": "md" },
+                { "type": "box", "layout": "vertical", "margin": "lg", "spacing": "sm", "contents": [
+                    { "type": "box", "layout": "horizontal", "contents": [{ "type": "text", "text": "錢包餘額", "color": "#888888", "size": "sm" }, { "type": "text", "text": `$${p?p.money:0}`, "color": "#2ecc71", "align": "end" }] },
+                    { "type": "box", "layout": "horizontal", "contents": [{ "type": "text", "text": "未結債務", "color": "#888888", "size": "sm" }, { "type": "text", "text": `$${p?p.debt:0}`, "color": "#ff4757", "align": "end" }] }
+                ]}
+            ]}
+        };
     }
 
     window.onload = init;
 </script>
 </body>
 </html>
-
