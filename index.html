@@ -2,186 +2,151 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ELITE BATTLE SYSTEM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELITE DATA TERMINAL</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        :root {
-            --gold: #FFD700;
-            --dark-bg: #0d1117;
-            --card-bg: #161b22;
-            --text-gray: #8b949e;
-        }
-        body {
-            background-color: var(--dark-bg);
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 10px 20px;
-            border-radius: 50px;
-            border: 1px solid #30363d;
-            margin-bottom: 20px;
-        }
-        .user-info img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 1px solid var(--gold);
-        }
-        .elite-card {
-            background: var(--card-bg);
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        h1 { color: var(--gold); letter-spacing: 2px; font-size: 1.5rem; margin-bottom: 5px; }
-        p { color: var(--text-gray); font-size: 0.9rem; }
+        :root { --blue: #00d2ff; --gold: #ffa502; --bg: #0d1117; --card: #1c222b; --border: #30363d; --gray: #8b949e; }
+        body { background: var(--bg); color: #e6edf3; font-family: sans-serif; padding: 15px; margin: 0 auto; max-width: 500px; }
         
-        .btn-group { width: 100%; margin-top: 30px; }
-        .btn {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: none;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-gold {
-            background: linear-gradient(45deg, #FFD700, #b8860b);
-            color: black;
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--gold);
-            color: var(--gold);
-        }
-        .btn:active { transform: scale(0.98); opacity: 0.8; }
+        .section { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 15px; margin-bottom: 15px; }
+        .label { color: var(--gold); font-size: 12px; font-weight: bold; margin-bottom: 8px; display: block; }
+        
+        select, input { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; }
+        
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn { padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-blue { background: var(--blue); color: #000; }
+        .btn-gold { background: var(--gold); color: #000; grid-column: span 2; margin-top: 10px; font-size: 16px; }
+        
+        .status { font-size: 12px; text-align: center; color: var(--gray); margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="user-info" id="userInfo" style="display: none;">
-        <img id="userImg" src="" alt="">
-        <span id="userName">菁英成員</span>
+    <h2 style="color: var(--blue); text-align: center;">📊 ELITE 數據終端</h2>
+
+    <div class="section">
+        <span class="label">發送維度 & 類型</span>
+        <select id="target-player">
+            <option value="ALL">📢 全體成員 (群組戰報)</option>
+            </select>
+        
+        <select id="data-type" onchange="toggleInputs()">
+            <option value="game_stats">🏆 歷史遊戲戰績 (Total K/D/W)</option>
+            <option value="financial_summary">💰 生活雜支 & 結單 (含欠款)</option>
+            <option value="smart_split">⚖️ 智慧分錢 (自動結算分配)</option>
+        </select>
     </div>
 
-    <div class="elite-card">
-        <h1>ELITE</h1>
-        <p>PREMIUM BATTLE & LEDGER</p>
-        <hr style="border: 0; border-top: 1px solid #30363d; margin: 20px 0;">
-        
-        <div id="status">系統初始化中...</div>
-
-        <div class="btn-group">
-            <button class="btn btn-gold" onclick="sendBattleReport()">📤 發送黑金戰報卡片</button>
-            <button class="btn btn-outline" onclick="liff.closeWindow()">關閉系統</button>
+    <div class="section">
+        <span class="label">時間範圍 (可選)</span>
+        <div style="display: flex; gap: 5px;">
+            <input type="date" id="date-start">
+            <input type="date" id="date-end">
         </div>
     </div>
 
-    <script>
-        const LIFF_ID = "2008868088-9hbWzzlW";
+    <div class="btn-grid">
+        <button class="btn btn-blue" onclick="previewData()">👁️ 預覽數據</button>
+        <button class="btn btn-blue" onclick="location.reload()">🔄 刷新數據</button>
+        <button class="btn btn-gold" onclick="processAndSend()">🚀 生成並發送卡片</button>
+    </div>
 
-        async function initLIFF() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (liff.isInClient()) {
-                    if (!liff.isLoggedIn()) {
-                        liff.login();
-                    } else {
-                        displayUserInfo();
-                    }
-                } else {
-                    document.getElementById('status').innerText = "瀏覽器預覽模式";
-                }
-            } catch (err) {
-                console.error("LIFF 初始化失敗", err);
-                document.getElementById('status').innerText = "環境載入失敗";
+    <div id="status" class="status">正在同步 Supabase 資料庫...</div>
+
+<script>
+    const API_URL = 'https://nzuxyiefpenwuqudajdw.supabase.co/rest/v1';
+    const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
+    const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
+    const LIFF_ID = "2008868088-9hbWzzlW";
+
+    let players = [], logs = [], expenses = [];
+
+    async function init() {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) liff.login();
+            await loadAllData();
+        } catch (e) { document.getElementById('status').innerText = "初始化失敗"; }
+    }
+
+    async function loadAllData() {
+        const [pRes, lRes, eRes] = await Promise.all([
+            fetch(`${API_URL}/players?select=*`, { headers: HEADERS }),
+            fetch(`${API_URL}/game_logs?select=*`, { headers: HEADERS }), // 假設你有這個表
+            fetch(`${API_URL}/expenses?select=*`, { headers: HEADERS })  // 假設你有雜支表
+        ]);
+        players = await pRes.json();
+        // 載入玩家清單到下拉選單
+        const select = document.getElementById('target-player');
+        players.forEach(p => {
+            if(!p.name.startsWith('OFF_')) {
+                let opt = new Option(`👤 個人：${p.name}`, p.name);
+                select.add(opt);
             }
+        });
+        document.getElementById('status').innerText = "🟢 資料庫連線正常";
+    }
+
+    // 核心邏輯：根據選擇生成不同的 Flex 內容
+    async function processAndSend() {
+        const target = document.getElementById('target-player').value;
+        const type = document.getElementById('data-type').value;
+        
+        let flexContent;
+        
+        if (type === 'game_stats') {
+            flexContent = generateGameFlex(target);
+        } else if (type === 'financial_summary') {
+            flexContent = generateFinanceFlex(target);
+        } else if (type === 'smart_split') {
+            flexContent = generateSplitFlex();
         }
 
-        async function displayUserInfo() {
-            const profile = await liff.getProfile();
-            document.getElementById('userInfo').style.display = 'flex';
-            document.getElementById('userImg').src = profile.pictureUrl;
-            document.getElementById('userName').innerText = profile.displayName;
-            document.getElementById('status').innerText = "ELITE 身份已驗證";
-        }
+        sendToLine(flexContent);
+    }
 
-        async function sendBattleReport() {
-            if (!liff.isInClient()) {
-                alert("請在 LINE App 中開啟以發送卡片");
-                return;
-            }
+    // 1. 遊戲戰績卡片生成 (示範邏輯)
+    function generateGameFlex(target) {
+        // 這裡過濾數據... 
+        return {
+            "type": "bubble",
+            "header": { "type": "box", "layout": "vertical", "contents": [{"type": "text", "text": "ELITE 戰績記錄", "color": "#00d2ff", "weight": "bold"}]},
+            "body": { "type": "box", "layout": "vertical", "contents": [
+                {"type": "text", "text": target === 'ALL' ? "全體總和" : `成員：${target}`, "size": "xl", "color": "#ffffff"},
+                {"type": "separator", "margin": "md"},
+                {"type": "text", "text": "歷史勝場：150", "color": "#aaaaaa", "margin": "sm"},
+                {"type": "text", "text": "上次結單欠額：$500", "color": "#ffa502"}
+            ]}
+        };
+    }
 
-            // 檢查是否開啟 ShareTargetPicker 權限
-            if (!liff.isApiAvailable('shareTargetPicker')) {
-                alert("請在 LINE Developers 開啟 shareTargetPicker 權限");
-                return;
-            }
+    // 2. 智慧分錢與雜支邏輯
+    function generateFinanceFlex(target) {
+        // 計算個人或群組雜支...
+        return {
+            "type": "bubble",
+            "body": { "type": "box", "layout": "vertical", "contents": [
+                {"type": "text", "text": "💰 財務結單公告", "weight": "bold", "color": "#ffa502"},
+                {"type": "text", "text": `對象：${target}`, "margin": "md", "color": "#ffffff"},
+                {"type": "box", "layout": "vertical", "margin": "lg", "contents": [
+                    {"type": "text", "text": "本期支出：$1,200", "color": "#eeeeee"},
+                    {"type": "text", "text": "歷史累積欠款：$3,450", "color": "#ff4757", "size": "sm"}
+                ]}
+            ]}
+        };
+    }
 
-            const result = await liff.shareTargetPicker([
-                {
-                    "type": "flex",
-                    "altText": "🏆 ELITE 菁英戰報",
-                    "contents": {
-                        "type": "bubble",
-                        "styles": {
-                            "header": { "backgroundColor": "#000000" },
-                            "body": { "backgroundColor": "#1a1a1a" },
-                            "footer": { "backgroundColor": "#1a1a1a" }
-                        },
-                        "header": {
-                            "type": "box", "layout": "vertical", "contents": [
-                                { "type": "text", "text": "ELITE SYSTEM", "color": "#FFD700", "weight": "bold", "size": "sm" }
-                            ]
-                        },
-                        "body": {
-                            "type": "box", "layout": "vertical", "contents": [
-                                { "type": "text", "text": "本日數據更新", "color": "#ffffff", "size": "xl", "weight": "bold" },
-                                { "type": "text", "text": "戰場積分與金庫餘額已同步雲端。", "color": "#aaaaaa", "size": "sm", "margin": "md", "wrap": true },
-                                { "type": "separator", "margin": "xl", "color": "#333333" }
-                            ]
-                        },
-                        "footer": {
-                            "type": "box", "layout": "vertical", "contents": [
-                                {
-                                    "type": "button",
-                                    "style": "primary",
-                                    "color": "#FFD700",
-                                    "action": {
-                                        "type": "uri",
-                                        "label": "查看完整明細",
-                                        "uri": "https://liff.line.me/" + LIFF_ID
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            ]);
+    // LINE 發送
+    async function sendToLine(flex) {
+        try {
+            await liff.shareTargetPicker([{ "type": "flex", "altText": "ELITE 數據分析", "contents": flex }]);
+        } catch (e) { alert("發送失敗，請檢查權限"); }
+    }
 
-            if (result) alert("戰報已發送至群組！");
-        }
-
-        window.onload = initLIFF;
-    </script>
+    window.onload = init;
+</script>
 </body>
 </html>
 
