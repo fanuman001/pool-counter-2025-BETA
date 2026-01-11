@@ -3,134 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELITE BIZ HUB</title>
+    <title>ELITE BIZ TERMINAL</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         :root { --blue: #00d2ff; --gold: #ffa502; --bg: #0d1117; --card: #1c222b; --border: #30363d; }
         body { background: var(--bg); color: #e6edf3; font-family: sans-serif; padding: 15px; max-width: 500px; margin: 0 auto; }
-        .box { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 15px; margin-bottom: 10px; }
-        select, input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; box-sizing: border-box; }
-        .btn { background: linear-gradient(135deg, var(--blue), #0072ff); font-weight: bold; cursor: pointer; border: none; font-size: 16px; }
-        .label { font-size: 12px; color: var(--gold); font-weight: bold; }
+        .box { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 20px; margin-bottom: 12px; }
+        select, input, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); background: #000; color: #fff; box-sizing: border-box; font-size: 16px; }
+        .btn-send { background: linear-gradient(135deg, var(--blue), #0072ff); font-weight: 900; cursor: pointer; border: none; margin-top: 10px; }
+        .label { font-size: 12px; color: var(--gold); font-weight: bold; margin-left: 5px; }
+        .status { text-align: center; font-size: 11px; color: #8b949e; margin-top: 8px; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: var(--blue); text-align: center;">💎 ELITE 數據查詢</h2>
+    <h2 style="color: var(--blue); text-align: center;">💎 ELITE 業務終端</h2>
 
     <div class="box">
-        <span class="label">業務對象</span>
-        <select id="p-sel"><option value="ALL">🌐 全體成員公開</option></select>
-        
-        <span class="label">查詢類型</span>
+        <span class="label">1. 選擇業務模式</span>
         <select id="t-sel">
-            <option value="HISTORY_RANK">🏆 歷史戰績排行 (解析 History)</option>
-            <option value="SMART_EXP">💸 智慧雜支分錢 (排除遊戲匯入)</option>
-            <option value="CURR_WALLET">🧾 當前錢包狀態 (Players)</option>
+            <option value="HISTORY_RANK">🏆 歷史戰績排行 (解析 History 數據)</option>
+            <option value="SMART_EXP">💸 智慧雜支分錢 (只算限定成員)</option>
+            <option value="CURR_WALLET">🧾 個人錢包結單 (Players 即時狀態)</option>
         </select>
         
-        <span class="label">日期 (未選則為今天)</span>
-        <div style="display: flex; gap: 5px;">
+        <span class="label">2. 對象 (個人結單用)</span>
+        <select id="p-sel"></select>
+
+        <span class="label">3. 時間範圍 (預設今天)</span>
+        <div style="display: flex; gap: 8px;">
             <input type="date" id="d-start">
             <input type="date" id="d-end">
         </div>
     </div>
 
-    <button class="btn" onclick="runBiz()">🚀 生成並發送卡片</button>
+    <button class="btn-send" onclick="startBusiness()">🚀 生成並發送業務卡片</button>
+    <div id="status" class="status">系統初始化中...</div>
 
 <script>
     const API = 'https://nzuxyiefpenwuqudajdw.supabase.co/rest/v1';
     const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
     const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
+    let playerMap = {};
 
     async function init() {
-        await liff.init({ liffId: "2008868088-9hbWzzlW" });
-        const res = await fetch(`${API}/players?select=*&order=name.asc`, { headers: HEADERS });
-        const data = await res.json();
-        const sel = document.getElementById('p-sel');
-        data.filter(p => !p.name.startsWith('OFF_')).forEach(p => sel.add(new Option(p.name, p.name)));
+        try {
+            await liff.init({ liffId: "2008868088-9hbWzzlW" });
+            const res = await fetch(`${API}/players?select=*&order=name.asc`, { headers: HEADERS });
+            const data = await res.json();
+            const sel = document.getElementById('p-sel');
+            data.forEach(p => {
+                playerMap[p.id] = p.name;
+                sel.add(new Option(p.name, p.name));
+            });
+            document.getElementById('status').innerText = "🟢 資料庫同步完成";
+        } catch (e) { document.getElementById('status').innerText = "🔴 初始化失敗"; }
     }
 
-    async function runBiz() {
+    async function startBusiness() {
         const type = document.getElementById('t-sel').value;
         const target = document.getElementById('p-sel').value;
         const today = new Date().toISOString().split('T')[0];
         const start = document.getElementById('d-start').value || today;
         const end = document.getElementById('d-end').value || start;
-
         let flex;
 
-        if (type === 'HISTORY_RANK') {
-            // 解析 History 表中的 description 欄位
-            const data = await fetch(`${API}/history?created_at=gte.${start}T00:00:00&created_at=lte.${end}T23:59:59`, { headers: HEADERS }).then(r => r.json());
-            flex = parseHistoryToRank(data, start);
-        } 
-        else if (type === 'SMART_EXP') {
-            // 智慧分錢：只抓 type 為 exp 的 ledger_logs
-            const logs = await fetch(`${API}/ledger_logs?type=eq.exp&created_at=gte.${start}T00:00:00`, { headers: HEADERS }).then(r => r.json());
-            const players = await fetch(`${API}/players?select=name`, { headers: HEADERS }).then(r => r.json());
-            flex = buildExpCard(logs, players.length, start);
-        }
-        else if (type === 'CURR_WALLET') {
-            const p = await fetch(`${API}/players?name=eq.${target}`, { headers: HEADERS }).then(r => r.json());
-            flex = buildWalletCard(target, p[0]);
-        }
+        document.getElementById('status').innerText = "⚡ 正在計算...";
 
-        liff.shareTargetPicker([{ "type": "flex", "altText": "ELITE 數據報表", "contents": flex }]);
+        try {
+            if (type === 'HISTORY_RANK') {
+                const res = await fetch(`${API}/history?created_at=gte.${start}T00:00:00&created_at=lte.${end}T23:59:59`, { headers: HEADERS });
+                flex = buildHistoryFlex(await res.json(), start);
+            } 
+            else if (type === 'SMART_EXP') {
+                const res = await fetch(`${API}/ledger_logs?type=eq.exp&created_at=gte.${start}T00:00:00`, { headers: HEADERS });
+                flex = buildPreciseExpFlex(await res.json(), start);
+            } 
+            else {
+                const res = await fetch(`${API}/players?name=eq.${target}`, { headers: HEADERS });
+                const pData = await res.json();
+                flex = buildWalletFlex(target, pData[0]);
+            }
+
+            await liff.shareTargetPicker([{ "type": "flex", "altText": "ELITE 業務報表", "contents": flex }]);
+            document.getElementById('status').innerText = "✅ 發送成功";
+        } catch (e) { console.error(e); document.getElementById('status').innerText = "❌ 處理失敗"; }
     }
 
-    // 解析 History 字串邏輯 (針對：💰 結單：Fan祐銘:25 | hsuan秉軒:213...)
-    function parseHistoryToRank(data, date) {
+    // --- 功能 1: 歷史戰績解析 ---
+    function buildHistoryFlex(data, date) {
         let scores = {};
         data.forEach(item => {
-            const desc = item.description || "";
-            // 使用正規表達式抓取 姓名:數字
-            const matches = desc.matchAll(/([\u4e00-\u9fa5\w]+):(-?\d+)/g);
-            for (const match of matches) {
-                const name = match[1];
-                const score = parseInt(match[2]);
-                scores[name] = (scores[name] || 0) + score;
-            }
+            const matches = (item.description || "").matchAll(/([\u4e00-\u9fa5\w]+):(-?\d+)/g);
+            for (const m of matches) { scores[m[1]] = (scores[m[1]] || 0) + parseInt(m[2]); }
         });
-
         const list = Object.entries(scores).sort((a,b) => b[1]-a[1]);
         return {
-            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#000000", "contents": [
-                { "type": "text", "text": "🏆 歷史戰績累計", "color": "#ffa502", "weight": "bold" },
-                { "type": "text", "text": date + " 數據解析", "size": "xxs", "color": "#888888" },
-                { "type": "separator", "margin": "md" },
-                { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": list.map(([n, v]) => ({
+            "type": "bubble", "styles": { "body": { "backgroundColor": "#000000" } },
+            "body": { "type": "box", "layout": "vertical", "contents": [
+                { "type": "text", "text": "🏆 歷史戰績排行", "color": "#ffa502", "weight": "bold", "size": "sm" },
+                { "type": "text", "text": date, "color": "#888888", "size": "xxs" },
+                { "type": "box", "layout": "vertical", "margin": "lg", "spacing": "sm", "contents": list.map(([n, v]) => ({
                     "type": "box", "layout": "horizontal", "contents": [
                         { "type": "text", "text": n, "color": "#ffffff", "size": "sm" },
-                        { "type": "text", "text": v > 0 ? `+${v}` : `${v}`, "color": v >= 0 ? "#00d2ff" : "#ff4757", "align": "end", "weight": "bold" }
+                        { "type": "text", "text": (v>0?`+${v}`:`${v}`), "color": v>=0?"#00d2ff":"#ff4757", "align": "end", "weight": "bold", "size": "sm" }
                     ]
                 }))}
             ]}
         };
     }
 
-    function buildExpCard(logs, pCount, date) {
-        const total = logs.reduce((sum, l) => sum + (parseInt(l.total_amount) || 0), 0);
-        const per = Math.round(total / pCount);
+    // --- 功能 2: 精準雜支分攤 (限定成員) ---
+    function buildPreciseExpFlex(logs, date) {
+        let personal = {};
+        let total = 0;
+        logs.forEach(log => {
+            total += (parseInt(log.total_amount) || 0);
+            if (log.detail_json && log.detail_json.shares) {
+                for (const [id, amt] of Object.entries(log.detail_json.shares)) {
+                    let name = playerMap[id] || `ID:${id}`;
+                    personal[name] = (personal[name] || 0) + amt;
+                }
+            }
+        });
+        const list = Object.entries(personal);
         return {
-            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#1c222b", "contents": [
-                { "type": "text", "text": "💸 今日雜支分錢", "color": "#ffa502", "weight": "bold" },
-                { "type": "text", "text": `$${total}`, "size": "xxl", "color": "#ffffff", "weight": "bold", "margin": "sm" },
-                { "type": "text", "text": "已排除遊戲重複數據 (Type: exp)", "size": "xxs", "color": "#888888" },
-                { "type": "box", "layout": "horizontal", "margin": "lg", "contents": [
-                    { "type": "text", "text": `分攤人數: ${pCount}`, "color": "#aaaaaa", "size": "xs" },
-                    { "type": "text", "text": `每人: $${per}`, "color": "#00d2ff", "align": "end", "weight": "bold" }
-                ]}
+            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#0d1117", "contents": [
+                { "type": "text", "text": "⚖️ 生活雜支分攤", "color": "#ffa502", "weight": "bold", "size": "sm" },
+                { "type": "text", "text": `$${total}`, "size": "xxl", "color": "#ffffff", "weight": "bold", "margin": "md" },
+                { "type": "separator", "margin": "md", "color": "#333333" },
+                { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": list.map(([n, v]) => ({
+                    "type": "box", "layout": "horizontal", "contents": [
+                        { "type": "text", "text": n, "color": "#aaaaaa", "size": "sm" },
+                        { "type": "text", "text": `$${v}`, "color": "#00d2ff", "align": "end", "weight": "bold" }
+                    ]
+                }))}
             ]}
         };
     }
 
-    function buildWalletCard(name, p) {
+    // --- 功能 3: 當前錢包狀態 ---
+    function buildWalletFlex(name, p) {
         return {
-            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#13171f", "contents": [
-                { "type": "text", "text": "🧾 當前錢包狀態", "color": "#00d2ff", "weight": "bold" },
-                { "type": "text", "text": name, "color": "#ffffff", "size": "xl", "margin": "md" },
-                { "type": "box", "layout": "vertical", "margin": "md", "contents": [
+            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#1c222b", "contents": [
+                { "type": "text", "text": "🧾 當前錢包結單", "color": "#00d2ff", "weight": "bold", "size": "sm" },
+                { "type": "text", "text": name, "color": "#ffffff", "size": "xl", "margin": "md", "weight": "bold" },
+                { "type": "box", "layout": "vertical", "margin": "lg", "spacing": "sm", "contents": [
                     { "type": "box", "layout": "horizontal", "contents": [{ "type": "text", "text": "餘額", "color": "#888888" }, { "type": "text", "text": `$${p?p.money:0}`, "color": "#2ecc71", "align": "end" }] },
                     { "type": "box", "layout": "horizontal", "contents": [{ "type": "text", "text": "欠款", "color": "#888888" }, { "type": "text", "text": `$${p?p.debt:0}`, "color": "#ff4757", "align": "end" }] }
                 ]}
