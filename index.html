@@ -76,10 +76,14 @@
         .hidden { display: none; }
         .history-item { background: #000; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); font-size: 12px; line-height: 1.5; }
         
-        /* 離線狀態標籤提示 */
-        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: bold; text-align: center; display: inline-block; }
-        .status-online { background: rgba(46, 213, 115, 0.2); color: var(--green); border: 1px solid var(--green); }
-        .status-offline { background: rgba(251, 197, 49, 0.2); color: var(--gold); border: 1px solid var(--gold); }
+        /* 狀態標籤 */
+        .status-badge { font-size: 11px; padding: 10px; border-radius: 10px; font-weight: bold; text-align: center; }
+        .status-online { background: rgba(46, 213, 115, 0.15); color: var(--green); border: 1px solid var(--green); }
+        .status-offline { background: rgba(251, 197, 49, 0.15); color: var(--gold); border: 1px solid var(--gold); }
+
+        /* 離線管理界面覆蓋 */
+        .offline-overlay { position: relative; }
+        .offline-overlay::after { content: "⚠️ 資料庫已離線：採用本地化運作"; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(5,7,10,0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); color: var(--gold); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; z-index: 10; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -104,6 +108,15 @@
         <div class="config-box"><span>2媽倍</span><input id="v-m2" class="big-in" type="number" value="3" oninput="render()"></div>
     </div>
 
+    <!-- 離線專用：本地快速新增球員區域（僅在離線時呈現醒目狀態） -->
+    <div id="local-add-box" class="card" style="padding: 12px; display: none; border: 1px dashed var(--gold);">
+        <div style="color: var(--gold); font-size: 12px; font-weight: 900; margin-bottom: 8px;">➕ 新增本地臨時玩家 (離線專用)</div>
+        <div style="display:flex; gap:8px;">
+            <input id="local-new-p" type="text" placeholder="輸入新玩家姓名" style="flex:1; background:#000; border:1px solid var(--border); color:#fff; padding:10px; border-radius:10px; font-size:14px;">
+            <button onclick="addLocalPlayer()" style="background:var(--gold); color:#000; border:none; padding:0 15px; border-radius:10px; font-weight:900; font-size:14px;">確認加入</button>
+        </div>
+    </div>
+
     <div class="card" style="padding: 15px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
             <b style="color:var(--gray); font-size: 12px;">當前上線球員</b>
@@ -119,8 +132,9 @@
     <button onclick="addTeam()" style="width:100%; padding:15px; background:transparent; color:var(--gray); border:1px dashed var(--border); border-radius:15px; font-weight:700; margin-bottom:20px;">＋ 增加分組隊伍</button>
 </div>
 
+<!-- 成員管理：離線時會被加上遮罩阻斷運作 -->
 <div id="tab-wallet" class="hidden">
-    <div class="card">
+    <div id="wallet-container" class="card">
         <div style="display:flex; gap:8px; margin-bottom:20px;">
             <input id="new-p" type="text" placeholder="輸入姓名" style="flex:1; background:#000; border:1px solid var(--border); color:#fff; padding:12px; border-radius:12px;">
             <button onclick="addPlayer()" style="background:var(--blue); color:#000; border:none; padding:0 20px; border-radius:12px; font-weight:900;">加入</button>
@@ -153,16 +167,16 @@ const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
 const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
 let players = [], matches = [], teams = [{id:1, e:0, targetK:{}}, {id:2, e:0, targetK:{}}], playerTeams = {}, winId = 0;
-let isOfflineMode = false; // 離線模式標記
+let isOfflineMode = false; 
 
-// 初始化入口
+// 初始化
 async function init() {
     try {
-        // 先測試 API 連線，若失敗會丟出錯誤進入 catch
+        // 連線測試
         const testRes = await fetch(`${API_URL}/players?select=id&limit=1`, { headers: HEADERS, method: 'GET' });
-        if (!testRes.ok) throw new Error("Database service unavailable (unpaid)");
+        if (!testRes.ok) throw new Error("Database Error");
 
-        // 資料庫正常：從遠端讀取
+        // 連線正常：讀取雲端
         const [pRes, hRes] = await Promise.all([
             fetch(`${API_URL}/players?select=*`, { headers: HEADERS }),
             fetch(`${API_URL}/history?select=*&order=created_at.desc`, { headers: HEADERS })
@@ -171,42 +185,37 @@ async function init() {
         matches = await hRes.json();
         
         isOfflineMode = false;
-        updateStatusUI("🌐 線上模式");
-        
-        // 順便把最新資料備份到本地，以防下次突然斷網
+        document.getElementById('mode-status').innerText = "🌐 線上模式";
+        document.getElementById('mode-status').className = "nav-link status-badge status-online";
+        document.getElementById('wallet-container').classList.remove('offline-overlay');
+        document.getElementById('local-add-box').style.display = 'none';
+
         localStorage.setItem('local_players', JSON.stringify(players));
         localStorage.setItem('local_history', JSON.stringify(matches));
     } catch(e) { 
-        console.warn("無法連接資料庫，自動啟動【離線模式】:", e.message);
+        // 進入完全本地離線模式
         isOfflineMode = true;
-        updateStatusUI("💤 離線模式");
+        document.getElementById('mode-status').innerText = "💤 離線本地化";
+        document.getElementById('mode-status').className = "nav-link status-badge status-offline";
         
-        // 離線模式：從本地 LocalStorage 讀取
+        // 成員管理限制運作遮罩
+        document.getElementById('wallet-container').classList.add('offline-overlay');
+        // 開啟本地玩家欄位
+        document.getElementById('local-add-box').style.display = 'block';
+        
         const localP = localStorage.getItem('local_players');
         const localH = localStorage.getItem('local_history');
         
         players = localP ? JSON.parse(localP) : [
-            {id: 1, name: '球員A', money: 0}, {id: 2, name: '球員B', money: 0}, {id: 3, name: '球員C', money: 0}
+            {id: 1, name: '本地玩家1', money: 0}, {id: 2, name: '本地玩家2', money: 0}, {id: 3, name: '本地玩家3', money: 0}
         ];
         matches = localH ? JSON.parse(localH) : [];
     }
     render();
 }
 
-function updateStatusUI(text) {
-    const el = document.getElementById('mode-status');
-    if (!el) return;
-    el.innerText = text;
-    if (isOfflineMode) {
-        el.className = "nav-link status-badge status-offline";
-    } else {
-        el.className = "nav-link status-badge status-online";
-    }
-}
-
-// 數據更新的核心封裝（自動分流 線上/離線）
+// 資料更新核心（完全剝離雲端功能）
 async function patch(id, d) { 
-    // 同步更新內存
     const idx = players.findIndex(p => p.id === id);
     if(idx !== -1) players[idx] = { ...players[idx], ...d };
 
@@ -217,12 +226,27 @@ async function patch(id, d) {
         try {
             return await fetch(`${API_URL}/players?id=eq.${id}`, { method: 'PATCH', headers: HEADERS, body: JSON.stringify(d) });
         } catch(e) {
-            console.error("Patch 失敗，轉為離線保存", e);
             localStorage.setItem('local_players', JSON.stringify(players));
         }
     }
 }
 
+// 離線專用：本地新增玩家
+function addLocalPlayer() {
+    const nameInput = document.getElementById('local-new-p');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    
+    const newId = players.length ? Math.max(...players.map(p => p.id)) + 1 : 1;
+    const newPlayer = { id: newId, name: name, money: 0 };
+    
+    players.push(newPlayer);
+    localStorage.setItem('local_players', JSON.stringify(players));
+    nameInput.value = '';
+    render();
+}
+
+// 分數計算
 function calculate() {
     const base = Number(document.getElementById('v-base').value);
     const ball = Number(document.getElementById('v-ball').value);
@@ -274,12 +298,13 @@ function calculate() {
     return { sc };
 }
 
+// 渲染畫面
 function render() {
     const { sc } = calculate();
     const onlineP = players.filter(p => !p.name.startsWith('OFF_'));
     const offlineP = players.filter(p => p.name.startsWith('OFF_'));
 
-    // 戰場 - 上線球員
+    // 戰場上線名單
     document.getElementById('p-grid').innerHTML = onlineP.map(p => {
         const tid = playerTeams[p.id] || 0;
         const s = Math.round(sc[p.id] || 0);
@@ -289,7 +314,7 @@ function render() {
         </div>`;
     }).join('');
 
-    // 戰場 - 快速上線
+    // 快速上線
     document.getElementById('quick-offline').innerHTML = offlineP.map(p => `
         <div class="q-btn" onclick="toggleOnOff(${p.id},'${p.name}', false)">＋ ${p.name.replace('OFF_','')}</div>
     `).join('') || '<span style="color:#444">全員已上線</span>';
@@ -326,48 +351,8 @@ function render() {
         </div>`;
     }).join('');
 
-    // 成員分頁
+    // 成員名單
     document.getElementById('wallet-online').innerHTML = onlineP.sort((a,b)=>b.money-a.money).map(p => `
         <div class="player-row">
             <div onclick="showAnalysis('${p.name}')">
-                <b style="font-size:18px; color:var(--blue);">${p.name}</b><br>
-                <small style="color:var(--gray); font-size:10px;">點擊查看累計數據</small>
-            </div>
-            <div style="text-align:right">
-                <b onclick="manualMoney(${p.id},'${p.name}',${p.money})" style="font-size:22px; color:${p.money>=0?'var(--green)':'var(--red)'}">${p.money}</b><br>
-                <button onclick="toggleOnOff(${p.id},'${p.name}', false)" style="color:var(--red); font-size:11px; background:none; border:none; font-weight:700;">設為休息</button>
-            </div>
-        </div>`).join('');
-    
-    document.getElementById('wallet-offline').innerHTML = offlineP.map(p => `
-        <button onclick="toggleOnOff(${p.id},'${p.name}', true)" class="offline-btn">＋ ${p.name.replace('OFF_','')}</button>
-    `).join('');
-    
-    renderHistory();
-}
 
-function varToHex(v) { if(v.includes('blue')) return '#00d2ff'; if(v.includes('red')) return '#ff4757'; return v; }
-
-function showTab(t) { 
-    ['game','wallet','history'].forEach(x => { 
-        document.getElementById('tab-'+x).classList.toggle('hidden', x!==t); 
-        document.getElementById('tab-btn-'+x).classList.toggle('active', x===t); 
-    });
-    document.getElementById('action-bar').style.display = (t === 'game') ? 'block' : 'none';
-    document.getElementById('multi-confirm').style.display = 'none'; 
-}
-
-async function toggleOnOff(id, n, multiMode) { 
-    const newName = n.startsWith('OFF_') ? n.replace('OFF_','') : 'OFF_'+n; 
-    await patch(id, { name: newName }); 
-    if(multiMode) {
-        document.getElementById('multi-confirm').style.display = 'block'; 
-        init(); 
-    } else {
-        init();
-    }
-}
-
-// 送出記局功能改進
-async function sendOrder() {
-    if (!winId) r
