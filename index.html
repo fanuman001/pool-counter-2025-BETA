@@ -2,161 +2,372 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELITE BIZ TERMINAL</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ELITE v53.4 - 專業版 (支援離線功能)</title>
     <style>
-        :root { --blue: #00d2ff; --gold: #ffa502; --bg: #0d1117; --card: #1c222b; --border: #30363d; }
-        body { background: var(--bg); color: #e6edf3; font-family: sans-serif; padding: 15px; max-width: 500px; margin: 0 auto; }
-        .box { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 20px; margin-bottom: 12px; }
-        select, input, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); background: #000; color: #fff; box-sizing: border-box; font-size: 16px; }
-        .btn-send { background: linear-gradient(135deg, var(--blue), #0072ff); font-weight: 900; cursor: pointer; border: none; margin-top: 10px; }
-        .label { font-size: 12px; color: var(--gold); font-weight: bold; margin-left: 5px; }
-        .status { text-align: center; font-size: 11px; color: #8b949e; margin-top: 8px; }
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Inter:wght@400;700;900&display=swap');
+
+        :root { 
+            --blue: #00d2ff; --red: #ff4757; --green: #2ed573; --gold: #fbc531; 
+            --bg: #05070a; --card: #12141c; --border: #1e222e; --gray: #7f8c8d;
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background: var(--bg); color: #e1e1e1; margin: 0; padding: 12px; font-size: 16px; 
+            padding-bottom: calc(100px + var(--safe-bottom));
+        }
+
+        b, .big-in, .score-badge, .t-detail { font-family: 'JetBrains Mono', monospace; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        /* 導航 */
+        .nav-bar { display: flex; gap: 8px; margin-bottom: 15px; }
+        .nav-link { flex: 1; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--gray); text-align: center; text-decoration: none; font-size: 11px; font-weight: 700; }
+        
+        .tabs { display: flex; gap: 4px; margin-bottom: 15px; background: #000; padding: 4px; border-radius: 14px; border: 1px solid var(--border); }
+        .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; color: var(--gray); font-weight: 900; font-size: 14px; }
+        .tab.active { background: var(--blue); color: #000; }
+
+        /* 設定 */
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .config-box { background: var(--card); padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+        .big-in { width: 50px; background: transparent; border: none; color: var(--gold); text-align: right; font-size: 18px; font-weight: 900; }
+
+        /* 隊伍卡片 */
+        .card { background: var(--card); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid var(--border); position: relative; }
+        .t-detail { font-size: 11px; color: var(--gray); line-height: 1.4; margin-top: 8px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 10px; }
+        .del-team { position: absolute; top: 15px; right: 15px; color: var(--gray); font-size: 18px; border: none; background: none; }
+
+        /* 媽球 */
+        .egg-group { display: flex; gap: 10px; margin-top: 15px; justify-content: center; }
+        .egg-circle { 
+            width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--border); 
+            display: flex; align-items: center; justify-content: center; font-size: 11px; 
+            color: var(--gray); transition: 0.3s; background: #000; font-weight: 900;
+        }
+        .egg-circle.active { background: var(--gold); color: #000; transform: scale(1.1); }
+
+        /* 成員按鈕 */
+        .p-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+        .p-btn { padding: 15px 5px; background: var(--card); border: 1px solid var(--border); border-radius: 15px; text-align: center; font-weight: 900; font-size: 15px; position: relative; }
+        .t-1 { border: 2.5px solid var(--blue); color: var(--blue); }
+        .t-2 { border: 2.5px solid var(--red); color: var(--red); }
+        .t-3 { border: 2.5px solid #a855f7; color: #a855f7; }
+        .t-4 { border: 2.5px solid #ec4899; color: #ec4899; }
+        .score-badge { position: absolute; top: -5px; right: -3px; padding: 2px 5px; border-radius: 4px; font-size: 10px; }
+        .win-tag { background: var(--green); color: #000; }
+        .loss-tag { background: var(--red); color: #fff; }
+
+        /* 快速上線 */
+        .quick-online { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; }
+        .q-btn { padding: 6px 12px; background: #1a1d26; border: 1px solid var(--border); border-radius: 8px; color: var(--gray); font-size: 12px; }
+
+        /* 底部 */
+        .bottom-action { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px calc(15px + var(--safe-bottom)); background: linear-gradient(0deg, var(--bg) 80%, transparent); z-index: 1000; }
+        .send-btn { width: 100%; padding: 18px; background: var(--green); color: #000; border: none; border-radius: 18px; font-weight: 900; font-size: 18px; box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3); }
+
+        .player-row { display: flex; justify-content: space-between; padding: 14px; background: rgba(255,255,255,0.02); border-radius: 14px; margin-bottom: 8px; border: 1px solid var(--border); align-items: center; }
+        .offline-btn { background: #1a1a1a; border: 1px dashed #333; color: var(--gray); padding: 12px; border-radius: 12px; font-size: 13px; text-align: center; }
+        .hidden { display: none; }
+        .history-item { background: #000; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); font-size: 12px; line-height: 1.5; }
+        
+        /* 離線狀態標籤提示 */
+        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: bold; text-align: center; display: inline-block; }
+        .status-online { background: rgba(46, 213, 115, 0.2); color: var(--green); border: 1px solid var(--green); }
+        .status-offline { background: rgba(251, 197, 49, 0.2); color: var(--gold); border: 1px solid var(--gold); }
     </style>
 </head>
 <body>
 
-    <h2 style="color: var(--blue); text-align: center;">💎 ELITE 業務終端</h2>
+<div class="nav-bar">
+    <a href="https://pool.vercel.app/" target="_blank" class="nav-link">📊 數據中心</a>
+    <div id="mode-status" class="nav-link status-badge status-online">連線檢查中...</div>
+    <a href="#" onclick="allOffline()" class="nav-link" style="color:var(--red)">💤 全員休息</a>
+</div>
 
-    <div class="box">
-        <span class="label">1. 選擇業務模式</span>
-        <select id="t-sel">
-            <option value="HISTORY_RANK">🏆 歷史戰績排行 (解析 History 數據)</option>
-            <option value="SMART_EXP">💸 智慧雜支分錢 (只算限定成員)</option>
-            <option value="CURR_WALLET">🧾 個人錢包結單 (Players 即時狀態)</option>
-        </select>
-        
-        <span class="label">2. 對象 (個人結單用)</span>
-        <select id="p-sel"></select>
+<div class="tabs">
+    <div id="tab-btn-game" class="tab active" onclick="showTab('game')">戰場</div>
+    <div id="tab-btn-wallet" class="tab" onclick="showTab('wallet')">成員管理</div>
+    <div id="tab-btn-history" class="tab" onclick="showTab('history')">歷史記錄</div>
+</div>
 
-        <span class="label">3. 時間範圍 (預設今天)</span>
-        <div style="display: flex; gap: 8px;">
-            <input type="date" id="d-start">
-            <input type="date" id="d-end">
-        </div>
+<div id="tab-game">
+    <div class="config-grid">
+        <div class="config-box"><span>底金</span><input id="v-base" class="big-in" type="number" value="75" oninput="render()"></div>
+        <div class="config-box"><span>球價</span><input id="v-ball" class="big-in" type="number" value="25" oninput="render()"></div>
+        <div class="config-box"><span>媽球</span><input id="v-egg" class="big-in" type="number" value="50" oninput="render()"></div>
+        <div class="config-box"><span>2媽倍</span><input id="v-m2" class="big-in" type="number" value="3" oninput="render()"></div>
     </div>
 
-    <button class="btn-send" onclick="startBusiness()">🚀 生成並發送業務卡片</button>
-    <div id="status" class="status">系統初始化中...</div>
+    <div class="card" style="padding: 15px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+            <b style="color:var(--gray); font-size: 12px;">當前上線球員</b>
+            <button onclick="runShuffle()" style="background:var(--gold); color:#000; border:none; padding:6px 14px; border-radius:8px; font-weight:900; font-size:12px;">🎰 隨機分組</button>
+        </div>
+        <div id="p-grid" class="p-grid"></div>
+        
+        <div style="margin-top:15px; font-size:11px; color:var(--gray);">快速上線：</div>
+        <div id="quick-offline" class="quick-online"></div>
+    </div>
+
+    <div id="team-list"></div>
+    <button onclick="addTeam()" style="width:100%; padding:15px; background:transparent; color:var(--gray); border:1px dashed var(--border); border-radius:15px; font-weight:700; margin-bottom:20px;">＋ 增加分組隊伍</button>
+</div>
+
+<div id="tab-wallet" class="hidden">
+    <div class="card">
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+            <input id="new-p" type="text" placeholder="輸入姓名" style="flex:1; background:#000; border:1px solid var(--border); color:#fff; padding:12px; border-radius:12px;">
+            <button onclick="addPlayer()" style="background:var(--blue); color:#000; border:none; padding:0 20px; border-radius:12px; font-weight:900;">加入</button>
+        </div>
+        
+        <div id="wallet-online"></div>
+        
+        <div style="margin: 25px 0 10px; color: var(--gray); font-weight: 900; font-size: 11px;">休息中 (點擊上線)</div>
+        <div id="wallet-offline" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>
+        
+        <div id="multi-confirm" style="display:none; margin-top:20px;">
+            <button onclick="showTab('game')" style="width:100%; padding:15px; background:var(--blue); color:#000; border:none; border-radius:12px; font-weight:900;">✅ 選好了，回戰場</button>
+        </div>
+
+        <button onclick="settleFinal()" style="width:100%; padding:20px; background:none; border:2px solid var(--gold); border-radius:20px; margin-top:40px; font-weight:900; color:var(--gold); font-size:16px;">💰 當日結單・金額清零</button>
+    </div>
+</div>
+
+<div id="tab-history" class="hidden">
+    <div id="order-history"></div>
+</div>
+
+<div id="action-bar" class="bottom-action">
+    <button onclick="sendOrder()" class="send-btn">🚀 紀錄此局分數</button>
+</div>
 
 <script>
-    const API = 'https://nzuxyiefpenwuqudajdw.supabase.co/rest/v1';
-    const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
-    const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
-    let playerMap = {};
+const API_URL = 'https://nzuxyiefpenwuqudajdw.supabase.co/rest/v1';
+const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
+const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
-    async function init() {
+let players = [], matches = [], teams = [{id:1, e:0, targetK:{}}, {id:2, e:0, targetK:{}}], playerTeams = {}, winId = 0;
+let isOfflineMode = false; // 離線模式標記
+
+// 初始化入口
+async function init() {
+    try {
+        // 先測試 API 連線，若失敗會丟出錯誤進入 catch
+        const testRes = await fetch(`${API_URL}/players?select=id&limit=1`, { headers: HEADERS, method: 'GET' });
+        if (!testRes.ok) throw new Error("Database service unavailable (unpaid)");
+
+        // 資料庫正常：從遠端讀取
+        const [pRes, hRes] = await Promise.all([
+            fetch(`${API_URL}/players?select=*`, { headers: HEADERS }),
+            fetch(`${API_URL}/history?select=*&order=created_at.desc`, { headers: HEADERS })
+        ]);
+        players = await pRes.json();
+        matches = await hRes.json();
+        
+        isOfflineMode = false;
+        updateStatusUI("🌐 線上模式");
+        
+        // 順便把最新資料備份到本地，以防下次突然斷網
+        localStorage.setItem('local_players', JSON.stringify(players));
+        localStorage.setItem('local_history', JSON.stringify(matches));
+    } catch(e) { 
+        console.warn("無法連接資料庫，自動啟動【離線模式】:", e.message);
+        isOfflineMode = true;
+        updateStatusUI("💤 離線模式");
+        
+        // 離線模式：從本地 LocalStorage 讀取
+        const localP = localStorage.getItem('local_players');
+        const localH = localStorage.getItem('local_history');
+        
+        players = localP ? JSON.parse(localP) : [
+            {id: 1, name: '球員A', money: 0}, {id: 2, name: '球員B', money: 0}, {id: 3, name: '球員C', money: 0}
+        ];
+        matches = localH ? JSON.parse(localH) : [];
+    }
+    render();
+}
+
+function updateStatusUI(text) {
+    const el = document.getElementById('mode-status');
+    if (!el) return;
+    el.innerText = text;
+    if (isOfflineMode) {
+        el.className = "nav-link status-badge status-offline";
+    } else {
+        el.className = "nav-link status-badge status-online";
+    }
+}
+
+// 數據更新的核心封裝（自動分流 線上/離線）
+async function patch(id, d) { 
+    // 同步更新內存
+    const idx = players.findIndex(p => p.id === id);
+    if(idx !== -1) players[idx] = { ...players[idx], ...d };
+
+    if (isOfflineMode) {
+        localStorage.setItem('local_players', JSON.stringify(players));
+        return true; 
+    } else {
         try {
-            await liff.init({ liffId: "2008868088-9hbWzzlW" });
-            const res = await fetch(`${API}/players?select=*&order=name.asc`, { headers: HEADERS });
-            const data = await res.json();
-            const sel = document.getElementById('p-sel');
-            data.forEach(p => {
-                playerMap[p.id] = p.name;
-                sel.add(new Option(p.name, p.name));
+            return await fetch(`${API_URL}/players?id=eq.${id}`, { method: 'PATCH', headers: HEADERS, body: JSON.stringify(d) });
+        } catch(e) {
+            console.error("Patch 失敗，轉為離線保存", e);
+            localStorage.setItem('local_players', JSON.stringify(players));
+        }
+    }
+}
+
+function calculate() {
+    const base = Number(document.getElementById('v-base').value);
+    const ball = Number(document.getElementById('v-ball').value);
+    const eggU = Number(document.getElementById('v-egg').value);
+    const m2Mult = Number(document.getElementById('v-m2').value);
+    const mults = { 0:0, 1:1, 2:m2Mult, 3:4, 4:6 };
+    let sc = {}; 
+    const on = players.filter(p => playerTeams[p.id] > 0);
+    on.forEach(p => sc[p.id] = 0);
+    if (!on.length) return { sc };
+    let teamMemsMap = {};
+    teams.forEach(t => { teamMemsMap[t.id] = on.filter(p => playerTeams[p.id] === t.id); });
+    const counts = Object.values(teamMemsMap).map(m => m.length);
+    const maxN = Math.max(...counts, 0);
+
+    if (winId && maxN > 0) {
+        const teamBase = base * maxN;
+        const winners = teamMemsMap[winId];
+        const losersTeams = teams.filter(t => t.id !== winId && teamMemsMap[t.id].length > 0);
+        losersTeams.forEach(lt => {
+            const mems = teamMemsMap[lt.id];
+            const perPersonLoss = teamBase / mems.length;
+            mems.forEach(p => sc[p.id] -= perPersonLoss);
+        });
+        const totalWinPool = losersTeams.length * teamBase;
+        if(winners.length > 0) winners.forEach(p => sc[p.id] += (totalWinPool / winners.length));
+    }
+    teams.forEach(t => {
+        const teamMems = teamMemsMap[t.id];
+        if (!teamMems.length) return;
+        if (t.e > 0) {
+            const eggBase = (eggU * (mults[t.e] || 0)) * maxN;
+            const otherTeams = teams.filter(ot => ot.id !== t.id && teamMemsMap[ot.id].length > 0);
+            otherTeams.forEach(ot => {
+                const mems = teamMemsMap[ot.id];
+                mems.forEach(p => sc[p.id] -= (eggBase / mems.length));
             });
-            document.getElementById('status').innerText = "🟢 資料庫同步完成";
-        } catch (e) { document.getElementById('status').innerText = "🔴 初始化失敗"; }
-    }
-
-    async function startBusiness() {
-        const type = document.getElementById('t-sel').value;
-        const target = document.getElementById('p-sel').value;
-        const today = new Date().toISOString().split('T')[0];
-        const start = document.getElementById('d-start').value || today;
-        const end = document.getElementById('d-end').value || start;
-        let flex;
-
-        document.getElementById('status').innerText = "⚡ 正在計算...";
-
-        try {
-            if (type === 'HISTORY_RANK') {
-                const res = await fetch(`${API}/history?created_at=gte.${start}T00:00:00&created_at=lte.${end}T23:59:59`, { headers: HEADERS });
-                flex = buildHistoryFlex(await res.json(), start);
-            } 
-            else if (type === 'SMART_EXP') {
-                const res = await fetch(`${API}/ledger_logs?type=eq.exp&created_at=gte.${start}T00:00:00`, { headers: HEADERS });
-                flex = buildPreciseExpFlex(await res.json(), start);
-            } 
-            else {
-                const res = await fetch(`${API}/players?name=eq.${target}`, { headers: HEADERS });
-                const pData = await res.json();
-                flex = buildWalletFlex(target, pData[0]);
+            teamMems.forEach(p => sc[p.id] += ((otherTeams.length * eggBase) / teamMems.length));
+        }
+        for (let targetTid in t.targetK) {
+            const cnt = t.targetK[targetTid];
+            if (cnt > 0 && teamMemsMap[targetTid]?.length) {
+                const ballBase = (cnt * ball) * maxN;
+                teamMemsMap[targetTid].forEach(p => sc[p.id] -= (ballBase / teamMemsMap[targetTid].length));
+                teamMems.forEach(p => sc[p.id] += (ballBase / teamMems.length));
             }
+        }
+    });
+    return { sc };
+}
 
-            await liff.shareTargetPicker([{ "type": "flex", "altText": "ELITE 業務報表", "contents": flex }]);
-            document.getElementById('status').innerText = "✅ 發送成功";
-        } catch (e) { console.error(e); document.getElementById('status').innerText = "❌ 處理失敗"; }
+function render() {
+    const { sc } = calculate();
+    const onlineP = players.filter(p => !p.name.startsWith('OFF_'));
+    const offlineP = players.filter(p => p.name.startsWith('OFF_'));
+
+    // 戰場 - 上線球員
+    document.getElementById('p-grid').innerHTML = onlineP.map(p => {
+        const tid = playerTeams[p.id] || 0;
+        const s = Math.round(sc[p.id] || 0);
+        return `<div class="p-btn ${tid?'t-'+tid:''}" onclick="togglePT(${p.id})">
+            ${s !== 0 ? `<div class="score-badge ${s>0?'win-tag':'loss-tag'}">${s>0?'+'+s:s}</div>` : ''}
+            ${p.name}
+        </div>`;
+    }).join('');
+
+    // 戰場 - 快速上線
+    document.getElementById('quick-offline').innerHTML = offlineP.map(p => `
+        <div class="q-btn" onclick="toggleOnOff(${p.id},'${p.name}', false)">＋ ${p.name.replace('OFF_','')}</div>
+    `).join('') || '<span style="color:#444">全員已上線</span>';
+
+    // 隊伍卡片
+    document.getElementById('team-list').innerHTML = teams.map(t => {
+        const mems = players.filter(p => playerTeams[p.id] == t.id);
+        const tScore = mems.reduce((sum, p) => sum + (sc[p.id] || 0), 0);
+        const bc = ['','var(--blue)','var(--red)','#a855f7','#ec4899'][t.id] || '#555';
+        let eggHtml = '';
+        for(let i=1; i<=4; i++) eggHtml += `<div class="egg-circle ${t.e >= i?'active':''}" onclick="adjE(${t.id},${i})">${i}媽</div>`; 
+        const detailHtml = mems.length ? `<div class="t-detail">${mems.map(m => `${m.name}:<b>${Math.round(sc[m.id])}</b>`).join(' | ')}</div>` : '<div class="t-detail">尚未分配隊員</div>';
+
+        return `<div class="card" style="border-left: 6px solid ${bc}">
+            <button class="del-team" onclick="removeTeam(${t.id})">✕</button>
+            <b style="font-size:16px; color:${bc}">第 ${t.id} 隊 <small style="color:var(--gray); font-size:11px;">(${mems.length}人)</small></b>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin: 10px 0;">
+                <b style="color:${tScore>=0?'var(--green)':'var(--red)'}; font-size:28px;">${Math.round(tScore)}</b>
+            </div>
+            ${detailHtml}
+            <div style="display:flex; gap:8px; margin:15px 0; overflow-x:auto;">
+                ${teams.filter(o=>o.id !== t.id).map(o => `
+                    <div style="background:#000; padding:6px 10px; border-radius:10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:10px; color:var(--gray);">對 T${o.id}</span>
+                        <button onclick="adjK(${t.id},${o.id},-1)" style="color:var(--blue); border:none; background:none; font-size:20px; font-weight:900;">-</button>
+                        <b style="color:var(--gold); font-size:18px; min-width:20px; text-align:center;">${t.targetK[o.id] || 0}</b>
+                        <button onclick="adjK(${t.id},${o.id},1)" style="color:var(--blue); border:none; background:none; font-size:20px; font-weight:900;">+</button>
+                    </div>`).join('')}
+            </div>
+            <div class="egg-group">${eggHtml}</div>
+            <button onclick="setWin(${t.id})" style="width:100%; padding:14px; border-radius:12px; margin-top:15px; border:none; background:${winId==t.id?varToHex(bc):'#1a1d26'}; color:${winId==t.id?'#000':'#555'}; font-weight:900;">
+                ${winId==t.id?'🏆 贏家已選定':'設定為贏家'}
+            </button>
+        </div>`;
+    }).join('');
+
+    // 成員分頁
+    document.getElementById('wallet-online').innerHTML = onlineP.sort((a,b)=>b.money-a.money).map(p => `
+        <div class="player-row">
+            <div onclick="showAnalysis('${p.name}')">
+                <b style="font-size:18px; color:var(--blue);">${p.name}</b><br>
+                <small style="color:var(--gray); font-size:10px;">點擊查看累計數據</small>
+            </div>
+            <div style="text-align:right">
+                <b onclick="manualMoney(${p.id},'${p.name}',${p.money})" style="font-size:22px; color:${p.money>=0?'var(--green)':'var(--red)'}">${p.money}</b><br>
+                <button onclick="toggleOnOff(${p.id},'${p.name}', false)" style="color:var(--red); font-size:11px; background:none; border:none; font-weight:700;">設為休息</button>
+            </div>
+        </div>`).join('');
+    
+    document.getElementById('wallet-offline').innerHTML = offlineP.map(p => `
+        <button onclick="toggleOnOff(${p.id},'${p.name}', true)" class="offline-btn">＋ ${p.name.replace('OFF_','')}</button>
+    `).join('');
+    
+    renderHistory();
+}
+
+function varToHex(v) { if(v.includes('blue')) return '#00d2ff'; if(v.includes('red')) return '#ff4757'; return v; }
+
+function showTab(t) { 
+    ['game','wallet','history'].forEach(x => { 
+        document.getElementById('tab-'+x).classList.toggle('hidden', x!==t); 
+        document.getElementById('tab-btn-'+x).classList.toggle('active', x===t); 
+    });
+    document.getElementById('action-bar').style.display = (t === 'game') ? 'block' : 'none';
+    document.getElementById('multi-confirm').style.display = 'none'; 
+}
+
+async function toggleOnOff(id, n, multiMode) { 
+    const newName = n.startsWith('OFF_') ? n.replace('OFF_','') : 'OFF_'+n; 
+    await patch(id, { name: newName }); 
+    if(multiMode) {
+        document.getElementById('multi-confirm').style.display = 'block'; 
+        init(); 
+    } else {
+        init();
     }
+}
 
-    // --- 功能 1: 歷史戰績解析 ---
-    function buildHistoryFlex(data, date) {
-        let scores = {};
-        data.forEach(item => {
-            const matches = (item.description || "").matchAll(/([\u4e00-\u9fa5\w]+):(-?\d+)/g);
-            for (const m of matches) { scores[m[1]] = (scores[m[1]] || 0) + parseInt(m[2]); }
-        });
-        const list = Object.entries(scores).sort((a,b) => b[1]-a[1]);
-        return {
-            "type": "bubble", "styles": { "body": { "backgroundColor": "#000000" } },
-            "body": { "type": "box", "layout": "vertical", "contents": [
-                { "type": "text", "text": "🏆 歷史戰績排行", "color": "#ffa502", "weight": "bold", "size": "sm" },
-                { "type": "text", "text": date, "color": "#888888", "size": "xxs" },
-                { "type": "box", "layout": "vertical", "margin": "lg", "spacing": "sm", "contents": list.map(([n, v]) => ({
-                    "type": "box", "layout": "horizontal", "contents": [
-                        { "type": "text", "text": n, "color": "#ffffff", "size": "sm" },
-                        { "type": "text", "text": (v>0?`+${v}`:`${v}`), "color": v>=0?"#00d2ff":"#ff4757", "align": "end", "weight": "bold", "size": "sm" }
-                    ]
-                }))}
-            ]}
-        };
-    }
-
-    // --- 功能 2: 精準雜支分攤 (限定成員) ---
-    function buildPreciseExpFlex(logs, date) {
-        let personal = {};
-        let total = 0;
-        logs.forEach(log => {
-            total += (parseInt(log.total_amount) || 0);
-            if (log.detail_json && log.detail_json.shares) {
-                for (const [id, amt] of Object.entries(log.detail_json.shares)) {
-                    let name = playerMap[id] || `ID:${id}`;
-                    personal[name] = (personal[name] || 0) + amt;
-                }
-            }
-        });
-        const list = Object.entries(personal);
-        return {
-            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#0d1117", "contents": [
-                { "type": "text", "text": "⚖️ 生活雜支分攤", "color": "#ffa502", "weight": "bold", "size": "sm" },
-                { "type": "text", "text": `$${total}`, "size": "xxl", "color": "#ffffff", "weight": "bold", "margin": "md" },
-                { "type": "separator", "margin": "md", "color": "#333333" },
-                { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": list.map(([n, v]) => ({
-                    "type": "box", "layout": "horizontal", "contents": [
-                        { "type": "text", "text": n, "color": "#aaaaaa", "size": "sm" },
-                        { "type": "text", "text": `$${v}`, "color": "#00d2ff", "align": "end", "weight": "bold" }
-                    ]
-                }))}
-            ]}
-        };
-    }
-
-    // --- 功能 3: 當前錢包狀態 ---
-    function buildWalletFlex(name, p) {
-        return {
-            "type": "bubble", "body": { "type": "box", "layout": "vertical", "backgroundColor": "#1c222b", "contents": [
-                { "type": "text", "text": "🧾 當前錢包結單", "color": "#00d2ff", "weight": "bold", "size": "sm" },
-                { "type": "text", "text": name, "color": "#ffffff", "size": "xl", "margin": "md", "weight": "bold" },
-                { "type": "box", "layout": "vertical", "margin": "lg", "spacing": "sm", "contents": [
-                    { "type": "box", "layout": "horizontal", "contents": [{ "type": "text", "text": "餘額", "color": "#888888" }, { "type": "text", "text": `$${p?p.money:0}`, "color": "#2ecc71", "align": "end" }] },
-                    { "type": "box", "layout": "horizontal", "contents": [{ "type": "text", "text": "欠款", "color": "#888888" }, { "type": "text", "text": `$${p?p.debt:0}`, "color": "#ff4757", "align": "end" }] }
-                ]}
-            ]}
-        };
-    }
-
-    window.onload = init;
-</script>
-</body>
-</html>
+// 送出記局功能改進
+async function sendOrder() {
+    if (!winId) r
