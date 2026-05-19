@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ELITE v53.4 - 專業版</title>
+    <title>ELITE v53.5 - 專業修復版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght=700&family=Inter:wght=400;700;900&display=swap');
 
@@ -77,7 +77,7 @@
         .history-item { background: #000; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); font-size: 12px; line-height: 1.5; }
 
         /* 模式切換按鈕與遮罩樣式 */
-        .mode-toggle-btn { font-weight: 900; font-size: 12px; border-radius: 10px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .mode-toggle-btn { font-weight: 900; font-size: 11px; border-radius: 10px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
         .online-ui { background: rgba(46, 213, 115, 0.15) !important; color: var(--green) !important; border: 1px solid var(--green) !important; }
         .offline-ui { background: rgba(251, 197, 49, 0.15) !important; color: var(--gold) !important; border: 1px solid var(--gold) !important; }
         
@@ -132,7 +132,7 @@
     <button onclick="addTeam()" style="width:100%; padding:15px; background:transparent; color:var(--gray); border:1px dashed var(--border); border-radius:15px; font-weight:700; margin-bottom:20px; cursor: pointer;">＋ 增加分組隊伍</button>
 </div>
 
-<!-- 成員管理（離線時會被 disabled-overlay-box 覆蓋鎖定） -->
+<!-- 成員管理 -->
 <div id="tab-wallet" class="hidden">
     <div id="wallet-card-wrapper" class="card">
         <div style="display:flex; gap:8px; margin-bottom:20px;">
@@ -167,22 +167,37 @@ const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
 const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
 let players = [], matches = [], teams = [{id:1, e:0, targetK:{}}, {id:2, e:0, targetK:{}}], playerTeams = {}, winId = 0;
-let isOfflineMode = false; // 是否處於本地離線模式
+let isOfflineMode = false; 
+
+// 帶超時控制的 fetch 封裝，防止連線測試時卡死
+function fetchWithTimeout(url, options, timeout = 1500) {
+    return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
+    ]);
+}
 
 // 系統初始化入口
 async function init() {
-    // 如果之前被設定為手動離線，則直接加載本地
+    // 優先讀取本地緩存，確保界面立刻有東西可以操作，不卡死
+    const localP = localStorage.getItem('local_players');
+    const localH = localStorage.getItem('local_history');
+    players = localP ? JSON.parse(localP) : [{id: 101, name: '本地玩家A', money: 0}, {id: 102, name: '本地玩家B', money: 0}];
+    matches = localH ? JSON.parse(localH) : [];
+    render();
+
+    // 如果使用者先前已手動鎖定離線
     if(localStorage.getItem('manual_offline') === 'true') {
         enableOfflineMode("💤 本地化運作 (手動)");
         return;
     }
 
     try {
-        // 先測試 API 連通性
-        const testCheck = await fetch(`${API_URL}/players?select=id&limit=1`, { headers: HEADERS, method: 'GET' });
-        if(!testCheck.ok) throw new Error("Database Service Offline");
+        // 使用 1.5 秒超時測試，超時直接判定斷線進本地
+        const testCheck = await fetchWithTimeout(`${API_URL}/players?select=id&limit=1`, { headers: HEADERS, method: 'GET' }, 1500);
+        if(!testCheck.ok) throw new Error("Database Offline");
 
-        // 線上資料拉取
+        // 連線成功，獲取最新雲端數據
         const [pRes, hRes] = await Promise.all([
             fetch(`${API_URL}/players?select=*`, { headers: HEADERS }),
             fetch(`${API_URL}/history?select=*&order=created_at.desc`, { headers: HEADERS })
@@ -195,64 +210,58 @@ async function init() {
         switcher.innerText = "🌐 線上雲端模式";
         switcher.className = "nav-link mode-toggle-btn online-ui";
         
-        // 解除成員管理覆蓋，隱藏本地新增欄位
         document.getElementById('wallet-card-wrapper').classList.remove('disabled-overlay-box');
         document.getElementById('local-player-panel').style.display = 'none';
 
-        // 自動同步備份
+        // 備份到本地
         localStorage.setItem('local_players', JSON.stringify(players));
         localStorage.setItem('local_history', JSON.stringify(matches));
         render();
     } catch(e) { 
+        // 任何一個步驟超時或失敗，立刻切換至本地，絕不卡住網頁
         enableOfflineMode("💤 本地化運作 (斷線自動)");
     }
 }
 
-// 啟用離線本地模式 UI & 資料重定向
+// 啟用離線本地模式 UI
 function enableOfflineMode(statusText) {
     isOfflineMode = true;
     const switcher = document.getElementById('mode-checker');
     switcher.innerText = statusText;
     switcher.className = "nav-link mode-toggle-btn offline-ui";
     
-    // 鎖定成員管理，展示本地新增欄位
     document.getElementById('wallet-card-wrapper').classList.add('disabled-overlay-box');
     document.getElementById('local-player-panel').style.display = 'block';
 
     const localP = localStorage.getItem('local_players');
     const localH = localStorage.getItem('local_history');
-    
-    players = localP ? JSON.parse(localP) : [
-        {id: 101, name: '本地玩家A', money: 0}, {id: 102, name: '本地玩家B', money: 0}
-    ];
-    matches = localH ? JSON.parse(localH) : [];
+    if (localP) players = JSON.parse(localP);
+    if (localH) matches = JSON.parse(localH);
     render();
 }
 
-// 手動切換模式按鈕功能
+// 手動切換模式按鈕（隨時可點，不受連線狀態限制）
 function toggleManualMode() {
     if(isOfflineMode) {
-        // 想切回線上
         localStorage.removeItem('manual_offline');
-        document.getElementById('mode-checker').innerText = "🔄 正在重新連線...";
-        document.getElementById('mode-checker').className = "nav-link mode-toggle-btn online-ui";
+        const switcher = document.getElementById('mode-checker');
+        switcher.innerText = "🔄 重新連線中...";
+        switcher.className = "nav-link mode-toggle-btn online-ui";
         init();
     } else {
-        // 切換到本地
-        if(confirm("是否切換為【本地化運作模式】？\n此模式下不會存取線上資料庫。")) {
+        if(confirm("是否切換為【本地化運作模式】？\n此模式下將直接在手機本地紀錄，不傳輸至雲端。")) {
             localStorage.setItem('manual_offline', 'true');
             enableOfflineMode("💤 本地化運作 (手動)");
         }
     }
 }
 
-// 新增本地玩家功能
+// 新增本地玩家
 function addLocalPlayer() {
     const inputEl = document.getElementById('local-p-name');
     const name = inputEl.value.trim();
     if (!name) return alert("請輸入有效的玩家姓名");
     
-    // 產生不重複的臨時本地 ID
     const nextId = players.length ? Math.max(...players.map(p => p.id)) + 1 : 1001;
     const newLocalPlayer = { id: nextId, name: name, money: 0 };
     
@@ -262,7 +271,7 @@ function addLocalPlayer() {
     render();
 }
 
-// 數據更新核心封裝（完全阻斷離線時的資料庫傳輸）
+// 數據更新封裝
 async function patch(id, d) { 
     const idx = players.findIndex(p => p.id === id);
     if(idx !== -1) players[idx] = { ...players[idx], ...d };
@@ -279,7 +288,7 @@ async function patch(id, d) {
     }
 }
 
-// 戰場結算分數核心計算
+// 核心計算
 function calculate() {
     const base = Number(document.getElementById('v-base').value);
     const ball = Number(document.getElementById('v-ball').value);
@@ -331,11 +340,11 @@ function calculate() {
     return { sc };
 }
 
-// 界面渲染
+// 介面渲染
 function render() {
     const { sc } = calculate();
-    const onlineP = players.filter(p => !p.name.startsWith('OFF_'));
-    const offlineP = players.filter(p => p.name.startsWith('OFF_'));
+    const onlineP = players.filter(p => p && p.name && !p.name.startsWith('OFF_'));
+    const offlineP = players.filter(p => p && p.name && p.name.startsWith('OFF_'));
 
     // 戰場 - 上線球員
     document.getElementById('p-grid').innerHTML = onlineP.map(p => {
@@ -364,10 +373,4 @@ function render() {
         return `<div class="card" style="border-left: 6px solid ${bc}">
             <button class="del-team" onclick="removeTeam(${t.id})">✕</button>
             <b style="font-size:16px; color:${bc}">第 ${t.id} 隊 <small style="color:var(--gray); font-size:11px;">(${mems.length}人)</small></b>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin: 10px 0;">
-                <b style="color:${tScore>=0?'var(--green)':'var(--red)'}; font-size:28px;">${Math.round(tScore)}</b>
-            </div>
-            ${detailHtml}
-            <div style="display:flex; gap:8px; margin:15px 0; overflow-x:auto;">
-                ${teams.filter(o=>o.id !== t.id).map(o => `
-                    <div style="background:#000; padding:6px 10px; border-r
+            <div style="display:flex; justify-content:space-between; ali
