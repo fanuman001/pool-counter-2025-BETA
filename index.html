@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ELITE v53.5 - 專業修復版</title>
+    <title>ELITE v54.0 - 純單機終極版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght=700&family=Inter:wght=400;700;900&display=swap');
 
@@ -21,9 +21,6 @@
         }
 
         b, .big-in, .score-badge, .t-detail { font-family: 'JetBrains Mono', monospace; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
 
         /* 導航 */
         .nav-bar { display: flex; gap: 8px; margin-bottom: 15px; }
@@ -76,19 +73,13 @@
         .hidden { display: none; }
         .history-item { background: #000; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); font-size: 12px; line-height: 1.5; }
 
-        /* 模式切換按鈕與遮罩樣式 */
-        .mode-toggle-btn { font-weight: 900; font-size: 11px; border-radius: 10px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .online-ui { background: rgba(46, 213, 115, 0.15) !important; color: var(--green) !important; border: 1px solid var(--green) !important; }
-        .offline-ui { background: rgba(251, 197, 49, 0.15) !important; color: var(--gold) !important; border: 1px solid var(--gold) !important; }
-        
-        .disabled-overlay-box { position: relative; }
-        .disabled-overlay-box::after { content: "⚠️ 資料庫離線中\n採用本地化運作"; white-space: pre-line; text-align: center; font-weight: 900; font-size: 16px; color: var(--red); position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 7, 10, 0.85); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 99; border-radius: 20px; }
+        .mode-toggle-btn { font-weight: 900; font-size: 11px; border-radius: 10px; text-align: center; display: flex; align-items: center; justify-content: center; background: rgba(251, 197, 49, 0.15) !important; color: var(--gold) !important; border: 1px solid var(--gold) !important; }
     </style>
 </head>
 <body>
 
 <div class="nav-bar">
-    <div id="mode-checker" onclick="toggleManualMode()" class="nav-link mode-toggle-btn online-ui">🔄 模式檢查中...</div>
+    <div class="nav-link mode-toggle-btn">⚡ 獨立單機模式 (免連線)</div>
     <a href="#" onclick="allOffline()" class="nav-link" style="color:var(--red)">💤 全員休息</a>
 </div>
 
@@ -107,12 +98,12 @@
         <div class="config-box"><span>2媽倍</span><input id="v-m2" class="big-in" type="number" value="3" oninput="render()"></div>
     </div>
 
-    <!-- 離線模式專用：新增本地化玩家 -->
-    <div id="local-player-panel" class="card" style="padding: 12px; margin-bottom: 12px; border: 1px dashed var(--gold); display: none;">
-        <div style="font-size: 12px; font-weight: 900; color: var(--gold); margin-bottom: 8px;">➕ 新增本地臨時玩家 (離線紀錄)</div>
+    <!-- 增加玩家 -->
+    <div class="card" style="padding: 12px; margin-bottom: 12px; border: 1px dashed var(--blue);">
+        <div style="font-size: 12px; font-weight: 900; color: var(--blue); margin-bottom: 8px;">➕ 新增成員</div>
         <div style="display: flex; gap: 8px;">
-            <input id="local-p-name" type="text" placeholder="請輸入本地玩家姓名" style="flex: 1; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 10px; font-size: 14px;">
-            <button onclick="addLocalPlayer()" style="background: var(--gold); color: #000; border: none; padding: 0 16px; border-radius: 10px; font-weight: 900; font-size: 14px; cursor: pointer;">加入戰場</button>
+            <input id="local-p-name" type="text" placeholder="輸入成員姓名" style="flex: 1; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 10px; font-size: 14px;">
+            <button onclick="addLocalPlayer()" style="background: var(--blue); color: #000; border: none; padding: 0 16px; border-radius: 10px; font-weight: 900; font-size: 14px; cursor: pointer;">加入</button>
         </div>
     </div>
 
@@ -134,21 +125,11 @@
 
 <!-- 成員管理 -->
 <div id="tab-wallet" class="hidden">
-    <div id="wallet-card-wrapper" class="card">
-        <div style="display:flex; gap:8px; margin-bottom:20px;">
-            <input id="new-p" type="text" placeholder="輸入姓名" style="flex:1; background:#000; border:1px solid var(--border); color:#fff; padding:12px; border-radius:12px;">
-            <button onclick="addPlayer()" style="background:var(--blue); color:#000; border:none; padding:0 20px; border-radius:12px; font-weight:900; cursor: pointer;">加入</button>
-        </div>
-        
+    <div class="card">
         <div id="wallet-online"></div>
-        
         <div style="margin: 25px 0 10px; color: var(--gray); font-weight: 900; font-size: 11px;">休息中 (點擊上線)</div>
         <div id="wallet-offline" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>
         
-        <div id="multi-confirm" style="display:none; margin-top:20px;">
-            <button onclick="showTab('game')" style="width:100%; padding:15px; background:var(--blue); color:#000; border:none; border-radius:12px; font-weight:900; cursor: pointer;">✅ 選好了，回戰場</button>
-        </div>
-
         <button onclick="settleFinal()" style="width:100%; padding:20px; background:none; border:2px solid var(--gold); border-radius:20px; margin-top:40px; font-weight:900; color:var(--gold); font-size:16px; cursor: pointer;">💰 當日結單・金額清零</button>
     </div>
 </div>
@@ -162,133 +143,40 @@
 </div>
 
 <script>
-const API_URL = 'https://nzuxyiefpenwuqudajdw.supabase.co/rest/v1';
-const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
-const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
-
 let players = [], matches = [], teams = [{id:1, e:0, targetK:{}}, {id:2, e:0, targetK:{}}], playerTeams = {}, winId = 0;
-let isOfflineMode = false; 
 
-// 帶超時控制的 fetch 封裝，防止連線測試時卡死
-function fetchWithTimeout(url, options, timeout = 1500) {
-    return Promise.race([
-        fetch(url, options),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
-    ]);
-}
-
-// 系統初始化入口
-async function init() {
-    // 優先讀取本地緩存，確保界面立刻有東西可以操作，不卡死
-    const localP = localStorage.getItem('local_players');
-    const localH = localStorage.getItem('local_history');
-    players = localP ? JSON.parse(localP) : [{id: 101, name: '本地玩家A', money: 0}, {id: 102, name: '本地玩家B', money: 0}];
+function init() {
+    const localP = localStorage.getItem('local_players_v2');
+    const localH = localStorage.getItem('local_history_v2');
+    
+    // 如果是第一次打開，提供預設名單
+    players = localP ? JSON.parse(localP) : [
+        {id: 1, name: '玩家A', money: 0},
+        {id: 2, name: '玩家B', money: 0},
+        {id: 3, name: '玩家C', money: 0},
+        {id: 4, name: '玩家D', money: 0}
+    ];
     matches = localH ? JSON.parse(localH) : [];
     render();
-
-    // 如果使用者先前已手動鎖定離線
-    if(localStorage.getItem('manual_offline') === 'true') {
-        enableOfflineMode("💤 本地化運作 (手動)");
-        return;
-    }
-
-    try {
-        // 使用 1.5 秒超時測試，超時直接判定斷線進本地
-        const testCheck = await fetchWithTimeout(`${API_URL}/players?select=id&limit=1`, { headers: HEADERS, method: 'GET' }, 1500);
-        if(!testCheck.ok) throw new Error("Database Offline");
-
-        // 連線成功，獲取最新雲端數據
-        const [pRes, hRes] = await Promise.all([
-            fetch(`${API_URL}/players?select=*`, { headers: HEADERS }),
-            fetch(`${API_URL}/history?select=*&order=created_at.desc`, { headers: HEADERS })
-        ]);
-        players = await pRes.json();
-        matches = await hRes.json();
-        
-        isOfflineMode = false;
-        const switcher = document.getElementById('mode-checker');
-        switcher.innerText = "🌐 線上雲端模式";
-        switcher.className = "nav-link mode-toggle-btn online-ui";
-        
-        document.getElementById('wallet-card-wrapper').classList.remove('disabled-overlay-box');
-        document.getElementById('local-player-panel').style.display = 'none';
-
-        // 備份到本地
-        localStorage.setItem('local_players', JSON.stringify(players));
-        localStorage.setItem('local_history', JSON.stringify(matches));
-        render();
-    } catch(e) { 
-        // 任何一個步驟超時或失敗，立刻切換至本地，絕不卡住網頁
-        enableOfflineMode("💤 本地化運作 (斷線自動)");
-    }
 }
 
-// 啟用離線本地模式 UI
-function enableOfflineMode(statusText) {
-    isOfflineMode = true;
-    const switcher = document.getElementById('mode-checker');
-    switcher.innerText = statusText;
-    switcher.className = "nav-link mode-toggle-btn offline-ui";
-    
-    document.getElementById('wallet-card-wrapper').classList.add('disabled-overlay-box');
-    document.getElementById('local-player-panel').style.display = 'block';
-
-    const localP = localStorage.getItem('local_players');
-    const localH = localStorage.getItem('local_history');
-    if (localP) players = JSON.parse(localP);
-    if (localH) matches = JSON.parse(localH);
-    render();
+function saveData() {
+    localStorage.setItem('local_players_v2', JSON.stringify(players));
+    localStorage.setItem('local_history_v2', JSON.stringify(matches));
 }
 
-// 手動切換模式按鈕（隨時可點，不受連線狀態限制）
-function toggleManualMode() {
-    if(isOfflineMode) {
-        localStorage.removeItem('manual_offline');
-        const switcher = document.getElementById('mode-checker');
-        switcher.innerText = "🔄 重新連線中...";
-        switcher.className = "nav-link mode-toggle-btn online-ui";
-        init();
-    } else {
-        if(confirm("是否切換為【本地化運作模式】？\n此模式下將直接在手機本地紀錄，不傳輸至雲端。")) {
-            localStorage.setItem('manual_offline', 'true');
-            enableOfflineMode("💤 本地化運作 (手動)");
-        }
-    }
-}
-
-// 新增本地玩家
 function addLocalPlayer() {
     const inputEl = document.getElementById('local-p-name');
     const name = inputEl.value.trim();
-    if (!name) return alert("請輸入有效的玩家姓名");
+    if (!name) return;
     
-    const nextId = players.length ? Math.max(...players.map(p => p.id)) + 1 : 1001;
-    const newLocalPlayer = { id: nextId, name: name, money: 0 };
-    
-    players.push(newLocalPlayer);
-    localStorage.setItem('local_players', JSON.stringify(players));
+    const nextId = players.length ? Math.max(...players.map(p => p.id)) + 1 : 1;
+    players.push({ id: nextId, name: name, money: 0 });
+    saveData();
     inputEl.value = '';
     render();
 }
 
-// 數據更新封裝
-async function patch(id, d) { 
-    const idx = players.findIndex(p => p.id === id);
-    if(idx !== -1) players[idx] = { ...players[idx], ...d };
-
-    if (isOfflineMode) {
-        localStorage.setItem('local_players', JSON.stringify(players));
-        return true; 
-    } else {
-        try {
-            return await fetch(`${API_URL}/players?id=eq.${id}`, { method: 'PATCH', headers: HEADERS, body: JSON.stringify(d) });
-        } catch(e) {
-            localStorage.setItem('local_players', JSON.stringify(players));
-        }
-    }
-}
-
-// 核心計算
 function calculate() {
     const base = Number(document.getElementById('v-base').value);
     const ball = Number(document.getElementById('v-ball').value);
@@ -340,13 +228,11 @@ function calculate() {
     return { sc };
 }
 
-// 介面渲染
 function render() {
     const { sc } = calculate();
     const onlineP = players.filter(p => p && p.name && !p.name.startsWith('OFF_'));
     const offlineP = players.filter(p => p && p.name && p.name.startsWith('OFF_'));
 
-    // 戰場 - 上線球員
     document.getElementById('p-grid').innerHTML = onlineP.map(p => {
         const tid = playerTeams[p.id] || 0;
         const s = Math.round(sc[p.id] || 0);
@@ -356,12 +242,10 @@ function render() {
         </div>`;
     }).join('');
 
-    // 戰場 - 快速上線
     document.getElementById('quick-offline').innerHTML = offlineP.map(p => `
-        <div class="q-btn" onclick="toggleOnOff(${p.id},'${p.name}', false)">＋ ${p.name.replace('OFF_','')}</div>
+        <div class="q-btn" onclick="toggleOnOff(${p.id},'${p.name}')">＋ ${p.name.replace('OFF_','')}</div>
     `).join('') || '<span style="color:#444">全員已上線</span>';
 
-    // 隊伍卡片
     document.getElementById('team-list').innerHTML = teams.map(t => {
         const mems = players.filter(p => playerTeams[p.id] == t.id);
         const tScore = mems.reduce((sum, p) => sum + (sc[p.id] || 0), 0);
@@ -373,4 +257,100 @@ function render() {
         return `<div class="card" style="border-left: 6px solid ${bc}">
             <button class="del-team" onclick="removeTeam(${t.id})">✕</button>
             <b style="font-size:16px; color:${bc}">第 ${t.id} 隊 <small style="color:var(--gray); font-size:11px;">(${mems.length}人)</small></b>
-            <div style="display:flex; justify-content:space-between; ali
+            <div style="display:flex; justify-content:space-between; align-items:center; margin: 10px 0;">
+                <b style="color:${tScore>=0?'var(--green)':'var(--red)'}; font-size:28px;">${Math.round(tScore)}</b>
+            </div>
+            ${detailHtml}
+            <div style="display:flex; gap:8px; margin:15px 0; overflow-x:auto;">
+                ${teams.filter(o=>o.id !== t.id).map(o => `
+                    <div style="background:#000; padding:6px 10px; border-radius:10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:10px; color:var(--gray);">對 T${o.id}</span>
+                        <button onclick="adjK(${t.id},${o.id},-1)" style="color:var(--blue); border:none; background:none; font-size:20px; font-weight:900;">-</button>
+                        <b style="color:var(--gold); font-size:18px; min-width:20px; text-align:center;">${t.targetK[o.id] || 0}</b>
+                        <button onclick="adjK(${t.id},${o.id},1)" style="color:var(--blue); border:none; background:none; font-size:20px; font-weight:900;">+</button>
+                    </div>`).join('')}
+            </div>
+            <div class="egg-group">${eggHtml}</div>
+            <button onclick="setWin(${t.id})" style="width:100%; padding:14px; border-radius:12px; margin-top:15px; border:none; background:${winId==t.id?varToHex(bc):'#1a1d26'}; color:${winId==t.id?'#000':'#555'}; font-weight:900;">
+                ${winId==t.id?'🏆 贏家已選定':'設定為贏家'}
+            </button>
+        </div>`;
+    }).join('');
+
+    document.getElementById('wallet-online').innerHTML = onlineP.sort((a,b)=>b.money-a.money).map(p => `
+        <div class="player-row">
+            <div onclick="showAnalysis('${p.name}')">
+                <b style="font-size:18px; color:var(--blue);">${p.name}</b><br>
+                <small style="color:var(--gray); font-size:10px;">點擊查看累計數據</small>
+            </div>
+            <div style="text-align:right">
+                <b onclick="manualMoney(${p.id},'${p.name}',${p.money})" style="font-size:22px; color:${p.money>=0?'var(--green)':'var(--red)'}">${p.money}</b><br>
+                <button onclick="toggleOnOff(${p.id},'${p.name}')" style="color:var(--red); font-size:11px; background:none; border:none; font-weight:700;">設為休息</button>
+            </div>
+        </div>`).join('');
+    
+    document.getElementById('wallet-offline').innerHTML = offlineP.map(p => `
+        <button onclick="toggleOnOff(${p.id},'${p.name}')" class="offline-btn">＋ ${p.name.replace('OFF_','')}</button>
+    `).join('');
+    
+    renderHistory();
+}
+
+function varToHex(v) { if(v.includes('blue')) return '#00d2ff'; if(v.includes('red')) return '#ff4757'; return v; }
+
+function showTab(t) { 
+    ['game','wallet','history'].forEach(x => { 
+        document.getElementById('tab-'+x).classList.toggle('hidden', x!==t); 
+        document.getElementById('tab-btn-'+x).classList.toggle('active', x===t); 
+    });
+    document.getElementById('action-bar').style.display = (t === 'game') ? 'block' : 'none';
+}
+
+function toggleOnOff(id, n) { 
+    const idx = players.findIndex(p => p.id === id);
+    if(idx !== -1) {
+        players[idx].name = n.startsWith('OFF_') ? n.replace('OFF_','') : 'OFF_'+n;
+        saveData();
+        render();
+    }
+}
+
+function sendOrder() {
+    if (!winId) return alert("請選擇贏家隊伍！");
+    const { sc } = calculate();
+    let desc = `局#${Date.now().toString().slice(-4)} (🏆T${winId}) `;
+    
+    players.forEach(p => {
+        if(playerTeams[p.id]) {
+            const amt = Math.round(sc[p.id]);
+            p.money += amt;
+            desc += `${p.name}(${amt}) `;
+        }
+    });
+
+    matches.unshift({ id: Date.now(), description: desc, created_at: new Date().toISOString() });
+    saveData();
+    winId = 0; 
+    teams.forEach(t => { t.e = 0; t.targetK = {}; }); 
+    render();
+}
+
+function renderHistory() {
+    const settleDocs = matches.filter(m => m.description && m.description.includes('💰'));
+    const gameDocs = matches.filter(m => m.description && !m.description.includes('💰'));
+    const lastSettleTime = settleDocs.length ? new Date(settleDocs[0].created_at) : new Date(0);
+    const unSettled = gameDocs.filter(o => new Date(o.created_at) > lastSettleTime);
+
+    let html = `<div class="card"><b style="color:var(--blue); font-size:14px;">本階段統計 (未結單)</b><div style="font-size:12px; margin-top:10px; color:#aaa;">${getAnalysis(unSettled)}</div></div>`;
+    html += unSettled.map(o => `<div class="player-row" style="font-size:11px; padding:10px;"><span>${o.description}</span><button onclick="delAndRefund(${o.id})" style="color:var(--red); border:none; background:none; font-weight:900; cursor: pointer;">✕</button></div>`).join('');
+    html += `<div style="margin:30px 0 15px; color:var(--gold); font-weight:900; font-size:14px; border-bottom:1px solid var(--border); padding-bottom:10px;">📋 歷史紀錄 (包含已結單)</div>`;
+    
+    if(!matches.length) {
+        html += `<div style="text-align:center; color:var(--gray); padding:20px;">暫無紀錄</div>`;
+    } else {
+        html += matches.map(s => `<div class="history-item"><div style="color:var(--blue); font-weight:900; margin-bottom:5px;">${new Date(s.created_at).toLocaleString()}</div>${s.description}</div>`).join('');
+    }
+    document.getElementById('order-history').innerHTML = html;
+}
+
+function runShuffle() { const on = players.filter(p => p && p.name && !p.name.startsWith('OFF_')); if(!on.length) return; playerTeam
