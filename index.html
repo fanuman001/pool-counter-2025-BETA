@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ELITE v54.0 - 純單機終極版</title>
+    <title>ELITE v54.1 - 單機流暢修復版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght=700&family=Inter:wght=400;700;900&display=swap');
 
@@ -103,7 +103,7 @@
         <div style="font-size: 12px; font-weight: 900; color: var(--blue); margin-bottom: 8px;">➕ 新增成員</div>
         <div style="display: flex; gap: 8px;">
             <input id="local-p-name" type="text" placeholder="輸入成員姓名" style="flex: 1; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 10px; font-size: 14px;">
-            <button onclick="addLocalPlayer()" style="background: var(--blue); color: #000; border: none; padding: 0 16px; border-radius: 10px; font-weight: 900; font-size: 14px; cursor: pointer;">加入</button>
+            <button onclick="addLocalPlayer()" style="background: var(--blue); color: #000; border: none; padding: 0 16px; border-radius: 10px; font-weight: 900; font-size: 14px; cursor: pointer;">加入戰場</button>
         </div>
     </div>
 
@@ -149,13 +149,18 @@ function init() {
     const localP = localStorage.getItem('local_players_v2');
     const localH = localStorage.getItem('local_history_v2');
     
-    // 如果是第一次打開，提供預設名單
-    players = localP ? JSON.parse(localP) : [
-        {id: 1, name: '玩家A', money: 0},
-        {id: 2, name: '玩家B', money: 0},
-        {id: 3, name: '玩家C', money: 0},
-        {id: 4, name: '玩家D', money: 0}
-    ];
+    // 如果本地有存過資料，就讀取本地；否則才載入預設名單
+    if (localP) {
+        players = JSON.parse(localP);
+    } else {
+        players = [
+            {id: 1, name: '玩家A', money: 0},
+            {id: 2, name: '玩家B', money: 0},
+            {id: 3, name: '玩家C', money: 0},
+            {id: 4, name: '玩家D', money: 0}
+        ];
+        saveData();
+    }
     matches = localH ? JSON.parse(localH) : [];
     render();
 }
@@ -168,13 +173,16 @@ function saveData() {
 function addLocalPlayer() {
     const inputEl = document.getElementById('local-p-name');
     const name = inputEl.value.trim();
-    if (!name) return;
+    if (!name) return alert("請輸入姓名！");
     
     const nextId = players.length ? Math.max(...players.map(p => p.id)) + 1 : 1;
+    
+    // 核心修復：直接將新玩家塞進 players 陣列並強制儲存
     players.push({ id: nextId, name: name, money: 0 });
     saveData();
+    
     inputEl.value = '';
-    render();
+    render(); // 立刻更新畫面
 }
 
 function calculate() {
@@ -350,7 +358,4 @@ function renderHistory() {
     } else {
         html += matches.map(s => `<div class="history-item"><div style="color:var(--blue); font-weight:900; margin-bottom:5px;">${new Date(s.created_at).toLocaleString()}</div>${s.description}</div>`).join('');
     }
-    document.getElementById('order-history').innerHTML = html;
-}
-
-function runShuffle() { const on = players.filter(p => p && p.name && !p.name.startsWith('OFF_')); if(!on.length) return; playerTeam
+    document.getElement
