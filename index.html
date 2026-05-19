@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ELITE v53.4 - 專業版 (支援離線功能)</title>
+    <title>ELITE v53.4 - 專業版</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Inter:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght=700&family=Inter:wght=400;700;900&display=swap');
 
         :root { 
             --blue: #00d2ff; --red: #ff4757; --green: #2ed573; --gold: #fbc531; 
@@ -27,10 +27,10 @@
 
         /* 導航 */
         .nav-bar { display: flex; gap: 8px; margin-bottom: 15px; }
-        .nav-link { flex: 1; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--gray); text-align: center; text-decoration: none; font-size: 11px; font-weight: 700; }
+        .nav-link { flex: 1; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--gray); text-align: center; text-decoration: none; font-size: 11px; font-weight: 700; cursor: pointer; }
         
         .tabs { display: flex; gap: 4px; margin-bottom: 15px; background: #000; padding: 4px; border-radius: 14px; border: 1px solid var(--border); }
-        .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; color: var(--gray); font-weight: 900; font-size: 14px; }
+        .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; color: var(--gray); font-weight: 900; font-size: 14px; cursor: pointer; }
         .tab.active { background: var(--blue); color: #000; }
 
         /* 設定 */
@@ -48,13 +48,13 @@
         .egg-circle { 
             width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--border); 
             display: flex; align-items: center; justify-content: center; font-size: 11px; 
-            color: var(--gray); transition: 0.3s; background: #000; font-weight: 900;
+            color: var(--gray); transition: 0.3s; background: #000; font-weight: 900; cursor: pointer;
         }
         .egg-circle.active { background: var(--gold); color: #000; transform: scale(1.1); }
 
         /* 成員按鈕 */
         .p-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
-        .p-btn { padding: 15px 5px; background: var(--card); border: 1px solid var(--border); border-radius: 15px; text-align: center; font-weight: 900; font-size: 15px; position: relative; }
+        .p-btn { padding: 15px 5px; background: var(--card); border: 1px solid var(--border); border-radius: 15px; text-align: center; font-weight: 900; font-size: 15px; position: relative; cursor: pointer; }
         .t-1 { border: 2.5px solid var(--blue); color: var(--blue); }
         .t-2 { border: 2.5px solid var(--red); color: var(--red); }
         .t-3 { border: 2.5px solid #a855f7; color: #a855f7; }
@@ -65,32 +65,30 @@
 
         /* 快速上線 */
         .quick-online { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; }
-        .q-btn { padding: 6px 12px; background: #1a1d26; border: 1px solid var(--border); border-radius: 8px; color: var(--gray); font-size: 12px; }
+        .q-btn { padding: 6px 12px; background: #1a1d26; border: 1px solid var(--border); border-radius: 8px; color: var(--gray); font-size: 12px; cursor: pointer; }
 
         /* 底部 */
         .bottom-action { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px calc(15px + var(--safe-bottom)); background: linear-gradient(0deg, var(--bg) 80%, transparent); z-index: 1000; }
-        .send-btn { width: 100%; padding: 18px; background: var(--green); color: #000; border: none; border-radius: 18px; font-weight: 900; font-size: 18px; box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3); }
+        .send-btn { width: 100%; padding: 18px; background: var(--green); color: #000; border: none; border-radius: 18px; font-weight: 900; font-size: 18px; box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3); cursor: pointer; }
 
         .player-row { display: flex; justify-content: space-between; padding: 14px; background: rgba(255,255,255,0.02); border-radius: 14px; margin-bottom: 8px; border: 1px solid var(--border); align-items: center; }
-        .offline-btn { background: #1a1a1a; border: 1px dashed #333; color: var(--gray); padding: 12px; border-radius: 12px; font-size: 13px; text-align: center; }
+        .offline-btn { background: #1a1a1a; border: 1px dashed #333; color: var(--gray); padding: 12px; border-radius: 12px; font-size: 13px; text-align: center; cursor: pointer; }
         .hidden { display: none; }
         .history-item { background: #000; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); font-size: 12px; line-height: 1.5; }
-        
-        /* 狀態標籤 */
-        .status-badge { font-size: 11px; padding: 10px; border-radius: 10px; font-weight: bold; text-align: center; }
-        .status-online { background: rgba(46, 213, 115, 0.15); color: var(--green); border: 1px solid var(--green); }
-        .status-offline { background: rgba(251, 197, 49, 0.15); color: var(--gold); border: 1px solid var(--gold); }
 
-        /* 離線管理界面覆蓋 */
-        .offline-overlay { position: relative; }
-        .offline-overlay::after { content: "⚠️ 資料庫已離線：採用本地化運作"; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(5,7,10,0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); color: var(--gold); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; z-index: 10; border-radius: 20px; }
+        /* 模式切換按鈕與遮罩樣式 */
+        .mode-toggle-btn { font-weight: 900; font-size: 12px; border-radius: 10px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .online-ui { background: rgba(46, 213, 115, 0.15) !important; color: var(--green) !important; border: 1px solid var(--green) !important; }
+        .offline-ui { background: rgba(251, 197, 49, 0.15) !important; color: var(--gold) !important; border: 1px solid var(--gold) !important; }
+        
+        .disabled-overlay-box { position: relative; }
+        .disabled-overlay-box::after { content: "⚠️ 資料庫離線中\n採用本地化運作"; white-space: pre-line; text-align: center; font-weight: 900; font-size: 16px; color: var(--red); position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 7, 10, 0.85); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 99; border-radius: 20px; }
     </style>
 </head>
 <body>
 
 <div class="nav-bar">
-    <a href="https://pool.vercel.app/" target="_blank" class="nav-link">📊 數據中心</a>
-    <div id="mode-status" class="nav-link status-badge status-online">連線檢查中...</div>
+    <div id="mode-checker" onclick="toggleManualMode()" class="nav-link mode-toggle-btn online-ui">🔄 模式檢查中...</div>
     <a href="#" onclick="allOffline()" class="nav-link" style="color:var(--red)">💤 全員休息</a>
 </div>
 
@@ -101,6 +99,7 @@
 </div>
 
 <div id="tab-game">
+    <!-- 設定 -->
     <div class="config-grid">
         <div class="config-box"><span>底金</span><input id="v-base" class="big-in" type="number" value="75" oninput="render()"></div>
         <div class="config-box"><span>球價</span><input id="v-ball" class="big-in" type="number" value="25" oninput="render()"></div>
@@ -108,15 +107,16 @@
         <div class="config-box"><span>2媽倍</span><input id="v-m2" class="big-in" type="number" value="3" oninput="render()"></div>
     </div>
 
-    <!-- 離線專用：本地快速新增球員區域（僅在離線時呈現醒目狀態） -->
-    <div id="local-add-box" class="card" style="padding: 12px; display: none; border: 1px dashed var(--gold);">
-        <div style="color: var(--gold); font-size: 12px; font-weight: 900; margin-bottom: 8px;">➕ 新增本地臨時玩家 (離線專用)</div>
-        <div style="display:flex; gap:8px;">
-            <input id="local-new-p" type="text" placeholder="輸入新玩家姓名" style="flex:1; background:#000; border:1px solid var(--border); color:#fff; padding:10px; border-radius:10px; font-size:14px;">
-            <button onclick="addLocalPlayer()" style="background:var(--gold); color:#000; border:none; padding:0 15px; border-radius:10px; font-weight:900; font-size:14px;">確認加入</button>
+    <!-- 離線模式專用：新增本地化玩家 -->
+    <div id="local-player-panel" class="card" style="padding: 12px; margin-bottom: 12px; border: 1px dashed var(--gold); display: none;">
+        <div style="font-size: 12px; font-weight: 900; color: var(--gold); margin-bottom: 8px;">➕ 新增本地臨時玩家 (離線紀錄)</div>
+        <div style="display: flex; gap: 8px;">
+            <input id="local-p-name" type="text" placeholder="請輸入本地玩家姓名" style="flex: 1; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 10px; font-size: 14px;">
+            <button onclick="addLocalPlayer()" style="background: var(--gold); color: #000; border: none; padding: 0 16px; border-radius: 10px; font-weight: 900; font-size: 14px; cursor: pointer;">加入戰場</button>
         </div>
     </div>
 
+    <!-- 球員列表 -->
     <div class="card" style="padding: 15px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
             <b style="color:var(--gray); font-size: 12px;">當前上線球員</b>
@@ -129,15 +129,15 @@
     </div>
 
     <div id="team-list"></div>
-    <button onclick="addTeam()" style="width:100%; padding:15px; background:transparent; color:var(--gray); border:1px dashed var(--border); border-radius:15px; font-weight:700; margin-bottom:20px;">＋ 增加分組隊伍</button>
+    <button onclick="addTeam()" style="width:100%; padding:15px; background:transparent; color:var(--gray); border:1px dashed var(--border); border-radius:15px; font-weight:700; margin-bottom:20px; cursor: pointer;">＋ 增加分組隊伍</button>
 </div>
 
-<!-- 成員管理：離線時會被加上遮罩阻斷運作 -->
+<!-- 成員管理（離線時會被 disabled-overlay-box 覆蓋鎖定） -->
 <div id="tab-wallet" class="hidden">
-    <div id="wallet-container" class="card">
+    <div id="wallet-card-wrapper" class="card">
         <div style="display:flex; gap:8px; margin-bottom:20px;">
             <input id="new-p" type="text" placeholder="輸入姓名" style="flex:1; background:#000; border:1px solid var(--border); color:#fff; padding:12px; border-radius:12px;">
-            <button onclick="addPlayer()" style="background:var(--blue); color:#000; border:none; padding:0 20px; border-radius:12px; font-weight:900;">加入</button>
+            <button onclick="addPlayer()" style="background:var(--blue); color:#000; border:none; padding:0 20px; border-radius:12px; font-weight:900; cursor: pointer;">加入</button>
         </div>
         
         <div id="wallet-online"></div>
@@ -146,10 +146,10 @@
         <div id="wallet-offline" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>
         
         <div id="multi-confirm" style="display:none; margin-top:20px;">
-            <button onclick="showTab('game')" style="width:100%; padding:15px; background:var(--blue); color:#000; border:none; border-radius:12px; font-weight:900;">✅ 選好了，回戰場</button>
+            <button onclick="showTab('game')" style="width:100%; padding:15px; background:var(--blue); color:#000; border:none; border-radius:12px; font-weight:900; cursor: pointer;">✅ 選好了，回戰場</button>
         </div>
 
-        <button onclick="settleFinal()" style="width:100%; padding:20px; background:none; border:2px solid var(--gold); border-radius:20px; margin-top:40px; font-weight:900; color:var(--gold); font-size:16px;">💰 當日結單・金額清零</button>
+        <button onclick="settleFinal()" style="width:100%; padding:20px; background:none; border:2px solid var(--gold); border-radius:20px; margin-top:40px; font-weight:900; color:var(--gold); font-size:16px; cursor: pointer;">💰 當日結單・金額清零</button>
     </div>
 </div>
 
@@ -167,16 +167,22 @@ const KEY = 'sb_publishable_7y2n8zIopxlKEhcsJ05D2A_U89IFgae';
 const HEADERS = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
 let players = [], matches = [], teams = [{id:1, e:0, targetK:{}}, {id:2, e:0, targetK:{}}], playerTeams = {}, winId = 0;
-let isOfflineMode = false; 
+let isOfflineMode = false; // 是否處於本地離線模式
 
-// 初始化
+// 系統初始化入口
 async function init() {
-    try {
-        // 連線測試
-        const testRes = await fetch(`${API_URL}/players?select=id&limit=1`, { headers: HEADERS, method: 'GET' });
-        if (!testRes.ok) throw new Error("Database Error");
+    // 如果之前被設定為手動離線，則直接加載本地
+    if(localStorage.getItem('manual_offline') === 'true') {
+        enableOfflineMode("💤 本地化運作 (手動)");
+        return;
+    }
 
-        // 連線正常：讀取雲端
+    try {
+        // 先測試 API 連通性
+        const testCheck = await fetch(`${API_URL}/players?select=id&limit=1`, { headers: HEADERS, method: 'GET' });
+        if(!testCheck.ok) throw new Error("Database Service Offline");
+
+        // 線上資料拉取
         const [pRes, hRes] = await Promise.all([
             fetch(`${API_URL}/players?select=*`, { headers: HEADERS }),
             fetch(`${API_URL}/history?select=*&order=created_at.desc`, { headers: HEADERS })
@@ -185,36 +191,78 @@ async function init() {
         matches = await hRes.json();
         
         isOfflineMode = false;
-        document.getElementById('mode-status').innerText = "🌐 線上模式";
-        document.getElementById('mode-status').className = "nav-link status-badge status-online";
-        document.getElementById('wallet-container').classList.remove('offline-overlay');
-        document.getElementById('local-add-box').style.display = 'none';
+        const switcher = document.getElementById('mode-checker');
+        switcher.innerText = "🌐 線上雲端模式";
+        switcher.className = "nav-link mode-toggle-btn online-ui";
+        
+        // 解除成員管理覆蓋，隱藏本地新增欄位
+        document.getElementById('wallet-card-wrapper').classList.remove('disabled-overlay-box');
+        document.getElementById('local-player-panel').style.display = 'none';
 
+        // 自動同步備份
         localStorage.setItem('local_players', JSON.stringify(players));
         localStorage.setItem('local_history', JSON.stringify(matches));
+        render();
     } catch(e) { 
-        // 進入完全本地離線模式
-        isOfflineMode = true;
-        document.getElementById('mode-status').innerText = "💤 離線本地化";
-        document.getElementById('mode-status').className = "nav-link status-badge status-offline";
-        
-        // 成員管理限制運作遮罩
-        document.getElementById('wallet-container').classList.add('offline-overlay');
-        // 開啟本地玩家欄位
-        document.getElementById('local-add-box').style.display = 'block';
-        
-        const localP = localStorage.getItem('local_players');
-        const localH = localStorage.getItem('local_history');
-        
-        players = localP ? JSON.parse(localP) : [
-            {id: 1, name: '本地玩家1', money: 0}, {id: 2, name: '本地玩家2', money: 0}, {id: 3, name: '本地玩家3', money: 0}
-        ];
-        matches = localH ? JSON.parse(localH) : [];
+        enableOfflineMode("💤 本地化運作 (斷線自動)");
     }
+}
+
+// 啟用離線本地模式 UI & 資料重定向
+function enableOfflineMode(statusText) {
+    isOfflineMode = true;
+    const switcher = document.getElementById('mode-checker');
+    switcher.innerText = statusText;
+    switcher.className = "nav-link mode-toggle-btn offline-ui";
+    
+    // 鎖定成員管理，展示本地新增欄位
+    document.getElementById('wallet-card-wrapper').classList.add('disabled-overlay-box');
+    document.getElementById('local-player-panel').style.display = 'block';
+
+    const localP = localStorage.getItem('local_players');
+    const localH = localStorage.getItem('local_history');
+    
+    players = localP ? JSON.parse(localP) : [
+        {id: 101, name: '本地玩家A', money: 0}, {id: 102, name: '本地玩家B', money: 0}
+    ];
+    matches = localH ? JSON.parse(localH) : [];
     render();
 }
 
-// 資料更新核心（完全剝離雲端功能）
+// 手動切換模式按鈕功能
+function toggleManualMode() {
+    if(isOfflineMode) {
+        // 想切回線上
+        localStorage.removeItem('manual_offline');
+        document.getElementById('mode-checker').innerText = "🔄 正在重新連線...";
+        document.getElementById('mode-checker').className = "nav-link mode-toggle-btn online-ui";
+        init();
+    } else {
+        // 切換到本地
+        if(confirm("是否切換為【本地化運作模式】？\n此模式下不會存取線上資料庫。")) {
+            localStorage.setItem('manual_offline', 'true');
+            enableOfflineMode("💤 本地化運作 (手動)");
+        }
+    }
+}
+
+// 新增本地玩家功能
+function addLocalPlayer() {
+    const inputEl = document.getElementById('local-p-name');
+    const name = inputEl.value.trim();
+    if (!name) return alert("請輸入有效的玩家姓名");
+    
+    // 產生不重複的臨時本地 ID
+    const nextId = players.length ? Math.max(...players.map(p => p.id)) + 1 : 1001;
+    const newLocalPlayer = { id: nextId, name: name, money: 0 };
+    
+    players.push(newLocalPlayer);
+    localStorage.setItem('local_players', JSON.stringify(players));
+    inputEl.value = '';
+    render();
+}
+
+// 數據更新核心封裝（完全阻斷離線時的資料庫傳輸）
 async function patch(id, d) { 
     const idx = players.findIndex(p => p.id === id);
     if(idx !== -1) players[idx] = { ...players[idx], ...d };
@@ -231,22 +279,7 @@ async function patch(id, d) {
     }
 }
 
-// 離線專用：本地新增玩家
-function addLocalPlayer() {
-    const nameInput = document.getElementById('local-new-p');
-    const name = nameInput.value.trim();
-    if (!name) return;
-    
-    const newId = players.length ? Math.max(...players.map(p => p.id)) + 1 : 1;
-    const newPlayer = { id: newId, name: name, money: 0 };
-    
-    players.push(newPlayer);
-    localStorage.setItem('local_players', JSON.stringify(players));
-    nameInput.value = '';
-    render();
-}
-
-// 分數計算
+// 戰場結算分數核心計算
 function calculate() {
     const base = Number(document.getElementById('v-base').value);
     const ball = Number(document.getElementById('v-ball').value);
@@ -298,13 +331,13 @@ function calculate() {
     return { sc };
 }
 
-// 渲染畫面
+// 界面渲染
 function render() {
     const { sc } = calculate();
     const onlineP = players.filter(p => !p.name.startsWith('OFF_'));
     const offlineP = players.filter(p => p.name.startsWith('OFF_'));
 
-    // 戰場上線名單
+    // 戰場 - 上線球員
     document.getElementById('p-grid').innerHTML = onlineP.map(p => {
         const tid = playerTeams[p.id] || 0;
         const s = Math.round(sc[p.id] || 0);
@@ -314,7 +347,7 @@ function render() {
         </div>`;
     }).join('');
 
-    // 快速上線
+    // 戰場 - 快速上線
     document.getElementById('quick-offline').innerHTML = offlineP.map(p => `
         <div class="q-btn" onclick="toggleOnOff(${p.id},'${p.name}', false)">＋ ${p.name.replace('OFF_','')}</div>
     `).join('') || '<span style="color:#444">全員已上線</span>';
@@ -337,22 +370,4 @@ function render() {
             ${detailHtml}
             <div style="display:flex; gap:8px; margin:15px 0; overflow-x:auto;">
                 ${teams.filter(o=>o.id !== t.id).map(o => `
-                    <div style="background:#000; padding:6px 10px; border-radius:10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px;">
-                        <span style="font-size:10px; color:var(--gray);">對 T${o.id}</span>
-                        <button onclick="adjK(${t.id},${o.id},-1)" style="color:var(--blue); border:none; background:none; font-size:20px; font-weight:900;">-</button>
-                        <b style="color:var(--gold); font-size:18px; min-width:20px; text-align:center;">${t.targetK[o.id] || 0}</b>
-                        <button onclick="adjK(${t.id},${o.id},1)" style="color:var(--blue); border:none; background:none; font-size:20px; font-weight:900;">+</button>
-                    </div>`).join('')}
-            </div>
-            <div class="egg-group">${eggHtml}</div>
-            <button onclick="setWin(${t.id})" style="width:100%; padding:14px; border-radius:12px; margin-top:15px; border:none; background:${winId==t.id?varToHex(bc):'#1a1d26'}; color:${winId==t.id?'#000':'#555'}; font-weight:900;">
-                ${winId==t.id?'🏆 贏家已選定':'設定為贏家'}
-            </button>
-        </div>`;
-    }).join('');
-
-    // 成員名單
-    document.getElementById('wallet-online').innerHTML = onlineP.sort((a,b)=>b.money-a.money).map(p => `
-        <div class="player-row">
-            <div onclick="showAnalysis('${p.name}')">
-
+                    <div style="background:#000; padding:6px 10px; border-r
